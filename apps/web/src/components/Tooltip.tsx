@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
-import type { Root } from "react-dom/client";
 import type { Placement } from "tippy.js";
 import { useEffect, useRef } from "react";
-import { createRoot } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
 import tippy from "tippy.js";
+
+const DEFAULT_DELAY: [number, number] = [500, 0];
 
 interface TooltipProps {
   children: ReactNode;
@@ -16,10 +17,9 @@ export function Tooltip({
   children,
   content,
   placement = "bottom",
-  delay = [500, 0],
+  delay = DEFAULT_DELAY,
 }: TooltipProps) {
   const triggerRef = useRef<HTMLDivElement>(null);
-  const rootRef = useRef<Root | null>(null);
 
   useEffect(() => {
     if (!triggerRef.current) return;
@@ -27,9 +27,7 @@ export function Tooltip({
     if (!content) return;
 
     const container = document.createElement("div");
-    const root = createRoot(container);
-    rootRef.current = root;
-    root.render(content);
+    container.innerHTML = renderToStaticMarkup(<>{content}</>);
 
     const instance = tippy(triggerRef.current, {
       content: container,
@@ -42,7 +40,6 @@ export function Tooltip({
 
     return () => {
       instance.destroy();
-      rootRef.current?.unmount();
     };
   }, [content, placement, delay]);
 

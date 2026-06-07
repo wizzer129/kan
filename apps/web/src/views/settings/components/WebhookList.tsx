@@ -1,5 +1,5 @@
-import { t } from "@lingui/core/macro";
 import type { Locale as DateFnsLocale } from "date-fns";
+import { t } from "@lingui/core/macro";
 import { format } from "date-fns";
 import { HiEllipsisHorizontal } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
@@ -26,9 +26,7 @@ interface TableRowProps {
 }
 
 function formatEvents(events: string[]) {
-  return events
-    .map((e) => e.replace("card.", ""))
-    .join(", ");
+  return events.map((e) => e.replace("card.", "")).join(", ");
 }
 
 function formatDate(date?: Date | null, locale?: DateFnsLocale) {
@@ -118,10 +116,7 @@ function TableRow({
         </p>
       </td>
       <td
-        className={twMerge(
-          "w-[5%] min-w-[50px]",
-          isLastRow && "rounded-br-lg",
-        )}
+        className={twMerge("w-[5%] min-w-[50px]", isLastRow && "rounded-br-lg")}
       >
         {!showSkeleton && (
           <div className="flex w-full items-center justify-center px-3">
@@ -163,15 +158,25 @@ export default function WebhookList({ workspacePublicId }: WebhookListProps) {
   const { openModal, setModalState } = useModal();
   const { showPopup } = usePopup();
   const { dateLocale } = useLocalisation();
+  const hasValidWorkspace = workspacePublicId.length >= 12;
 
-  const { data: webhooks, isLoading } = api.webhook.list.useQuery({
-    workspacePublicId,
-  });
+  const { data: webhooks, isLoading } = api.webhook.list.useQuery(
+    {
+      workspacePublicId,
+    },
+    {
+      enabled: hasValidWorkspace,
+    },
+  );
 
   const testWebhookMutation = api.webhook.test.useMutation({
     onSuccess: (result) => {
       if (result.success) {
-        showPopup({ header: t`Test sent`, message: t`Test webhook sent successfully!`, icon: "success" });
+        showPopup({
+          header: t`Test sent`,
+          message: t`Test webhook sent successfully!`,
+          icon: "success",
+        });
       } else {
         showPopup({
           header: t`Test failed`,
@@ -266,7 +271,11 @@ export default function WebhookList({ workspacePublicId }: WebhookListProps) {
                           events: webhook.events,
                           active: webhook.active,
                         });
-                        openModal("EDIT_WEBHOOK", webhook.publicId, webhook.name);
+                        openModal(
+                          "EDIT_WEBHOOK",
+                          webhook.publicId,
+                          webhook.name,
+                        );
                       }}
                       onTest={() => {
                         testWebhookMutation.mutate({
@@ -275,7 +284,11 @@ export default function WebhookList({ workspacePublicId }: WebhookListProps) {
                         });
                       }}
                       onDelete={() => {
-                        openModal("DELETE_WEBHOOK", webhook.publicId, webhook.name);
+                        openModal(
+                          "DELETE_WEBHOOK",
+                          webhook.publicId,
+                          webhook.name,
+                        );
                       }}
                     />
                   ))}

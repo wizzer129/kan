@@ -25,6 +25,7 @@ import { api } from "~/utils/api";
 import { invalidateCard } from "~/utils/cardInvalidation";
 import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
 import { DeleteLabelConfirmation } from "../../components/DeleteLabelConfirmation";
+import { CardBorderColorPicker } from "../board/components/CardBorderColorPicker";
 import ActivityList from "./components/ActivityList";
 import { AttachmentThumbnails } from "./components/AttachmentThumbnails";
 import { AttachmentUpload } from "./components/AttachmentUpload";
@@ -172,6 +173,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     clearModalState,
     isOpen,
     modalStates,
+    closeModal,
   } = useModal();
   const { showPopup } = usePopup();
   const { workspace } = useWorkspace();
@@ -320,7 +322,10 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       <PageHead
         title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
       />
-      <div className="flex h-full flex-1 flex-col overflow-hidden">
+      <div
+        className="flex h-full flex-1 flex-col overflow-hidden border-l-[5px] border-transparent"
+        style={{ borderLeftColor: card?.borderColor ?? undefined }}
+      >
         {/* Full-width top strip with board link and dropdown */}
         <div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 px-8 py-2 dark:border-dark-300 dark:bg-dark-50">
           {!card && isLoading && (
@@ -582,6 +587,25 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
             isVisible={isOpen && modalContentType === "EDIT_YOUTUBE"}
           >
             <EditYouTubeModal />
+          </Modal>
+
+          <Modal
+            modalSize="sm"
+            isVisible={isOpen && modalContentType === "CHANGE_BORDER_COLOR"}
+          >
+            <div className="p-5">
+              <h2 className="mb-4 text-base font-medium text-light-1000 dark:text-white">{t`Border color`}</h2>
+              <CardBorderColorPicker
+                value={card?.borderColor ?? null}
+                onChange={(color) => {
+                  updateCard.mutate({
+                    cardPublicId: cardId,
+                    borderColor: color,
+                  });
+                  closeModal();
+                }}
+              />
+            </div>
           </Modal>
         </>
       </div>

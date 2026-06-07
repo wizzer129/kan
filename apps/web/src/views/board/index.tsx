@@ -1,12 +1,12 @@
-import type { DropResult } from "react-beautiful-dnd";
+import type { DropResult } from "@hello-pangea/dnd";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/router";
+import { DragDropContext, Draggable } from "@hello-pangea/dnd";
 import { t } from "@lingui/core/macro";
 import { keepPreviousData } from "@tanstack/react-query";
 import { env } from "next-runtime-env";
 import { useEffect, useState } from "react";
-import { DragDropContext, Draggable } from "react-beautiful-dnd";
 import { useForm } from "react-hook-form";
 import {
   HiOutlinePlusSmall,
@@ -146,6 +146,8 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     enabled: !!boardId,
     placeholderData: keepPreviousData,
   });
+  const boardVisibility: "private" | "public" =
+    boardData?.visibility === "public" ? "public" : "private";
 
   // Redirect to 404 if board doesn't exist
   useEffect(() => {
@@ -574,11 +576,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                   workspaceSlug={workspace.slug ?? ""}
                   boardSlug={boardData?.slug ?? ""}
                   boardPublicId={boardId ?? ""}
-                  visibility={boardData?.visibility ?? "private"}
+                  visibility={boardVisibility}
                   canEdit={canEditBoard}
                 />
                 <VisibilityButton
-                  visibility={boardData?.visibility ?? "private"}
+                  visibility={boardVisibility}
                   boardPublicId={boardId ?? ""}
                   boardSlug={boardData?.slug ?? ""}
                   queryParams={queryParams}
@@ -761,6 +763,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                                               card.cardNumber != null
                                                 ? `${boardData.workspace.cardPrefix}-${card.cardNumber}`
                                                 : null
+                                            }
+                                            borderColor={
+                                              card.borderColor ?? null
                                             }
                                             labels={card.labels}
                                             members={card.members}

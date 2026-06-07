@@ -17,6 +17,7 @@ import { getAvatarUrl } from "~/utils/helpers";
 const Card = ({
   title,
   ticketNumber,
+  borderColor,
   labels,
   members,
   checklists,
@@ -27,6 +28,7 @@ const Card = ({
 }: {
   title: string;
   ticketNumber?: string | null;
+  borderColor?: string | null;
   labels: { name: string; colourCode: string | null }[];
   members: {
     publicId: string;
@@ -68,7 +70,10 @@ const Card = ({
   const hasDueDate = !!dueDate;
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-md border border-light-200 bg-light-50 px-3 py-2 text-sm text-neutral-900 dark:border-dark-200 dark:bg-dark-200 dark:text-dark-1000 dark:hover:bg-dark-300">
+    <div
+      className="flex flex-col overflow-hidden rounded-md border border-l-[6px] border-light-200 border-l-light-200 bg-light-50 px-3 py-2 text-sm text-neutral-900 dark:border-dark-200 dark:border-l-dark-200 dark:bg-dark-200 dark:text-dark-1000 dark:hover:bg-dark-300"
+      style={{ borderLeftColor: borderColor ?? undefined }}
+    >
       {ticketNumber && (
         <span className="mb-1 text-xs text-light-700 dark:text-dark-800">
           {ticketNumber}
@@ -86,6 +91,7 @@ const Card = ({
           <div className="space-x-0.5">
             {labels.map((label) => (
               <Badge
+                key={`${label.name}-${label.colourCode ?? "none"}`}
                 value={label.name}
                 iconLeft={<LabelIcon colourCode={label.colourCode} />}
               />
@@ -141,13 +147,14 @@ const Card = ({
               )}
               {members.length > 0 && (
                 <div className="isolate flex justify-end -space-x-1 overflow-hidden">
-                  {members.map(({ user, email }) => {
+                  {members.map(({ publicId, user, email }) => {
                     const avatarUrl = user?.image
                       ? getAvatarUrl(user.image)
                       : undefined;
 
                     return (
                       <Avatar
+                        key={publicId}
                         name={user?.name ?? ""}
                         email={user?.email ?? email}
                         imageUrl={avatarUrl}

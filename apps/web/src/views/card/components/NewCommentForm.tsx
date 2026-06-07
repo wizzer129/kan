@@ -2,8 +2,8 @@ import { t } from "@lingui/core/macro";
 import { useForm } from "react-hook-form";
 import { HiOutlineArrowUp } from "react-icons/hi2";
 
-import Editor from "~/components/Editor";
 import type { WorkspaceMember } from "~/components/Editor";
+import Editor from "~/components/Editor";
 import LoadingSpinner from "~/components/LoadingSpinner";
 import { usePermissions } from "~/hooks/usePermissions";
 import { usePopup } from "~/providers/popup";

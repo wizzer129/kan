@@ -13,9 +13,11 @@ import WebhookList from "./components/WebhookList";
 
 export default function WebhookSettings() {
   const { modalContentType, openModal, isOpen } = useModal();
-  const { workspace } = useWorkspace();
+  const { workspace, hasLoaded } = useWorkspace();
 
-  if (!workspace) {
+  const hasValidWorkspace = workspace.publicId.length >= 12;
+
+  if (!hasLoaded || !hasValidWorkspace) {
     return null;
   }
 

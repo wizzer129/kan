@@ -43,11 +43,15 @@ export default function IntegrationsSettings() {
     isLoading: integrationsLoading,
   } = api.integration.providers.useQuery();
 
+  const { data: providerAvailability } =
+    api.integration.getProviderAvailability.useQuery();
+
   const { data: trelloUrl, refetch: refetchTrelloUrl } =
     api.integration.getAuthorizationUrl.useQuery(
       { provider: "trello" },
       {
         enabled:
+          !!providerAvailability?.trello &&
           !integrationsLoading &&
           !integrations?.some(
             (integration) => integration.provider === "trello",
@@ -141,9 +145,13 @@ export default function IntegrationsSettings() {
         <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Trello`}
         </h2>
-        {!integrations?.some(
-          (integration) => integration.provider === "trello",
-        ) && trelloUrl ? (
+        {!providerAvailability?.trello ? (
+          <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
+            {t`Trello integration is not configured on this instance.`}
+          </p>
+        ) : !integrations?.some(
+            (integration) => integration.provider === "trello",
+          ) && trelloUrl ? (
           <>
             <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
               {t`Connect your Trello account to import boards.`}

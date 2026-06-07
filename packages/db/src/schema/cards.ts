@@ -62,6 +62,7 @@ export const cards = pgTable(
     publicId: varchar("publicId", { length: 12 }).notNull().unique(),
     title: text("title").notNull(),
     description: text("description"),
+    borderColor: text("borderColor"),
     index: integer("index").notNull(),
     cardNumber: integer("cardNumber"),
     createdBy: uuid("createdBy").references(() => users.id, {
@@ -81,9 +82,7 @@ export const cards = pgTable(
     ),
     dueDate: timestamp("dueDate"),
   },
-  (table) => [
-    index("card_list_number_idx").on(table.listId, table.cardNumber),
-  ],
+  (table) => [index("card_list_number_idx").on(table.listId, table.cardNumber)],
 ).enableRLS();
 
 export const cardsRelations = relations(cards, ({ one, many }) => ({

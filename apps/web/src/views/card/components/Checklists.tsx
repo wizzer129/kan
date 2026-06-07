@@ -1,6 +1,6 @@
-import type { DropResult } from "react-beautiful-dnd";
+import type { DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Draggable } from "@hello-pangea/dnd";
 import { t } from "@lingui/core/macro";
-import { DragDropContext, Draggable } from "react-beautiful-dnd";
 import { HiPlus, HiXMark } from "react-icons/hi2";
 
 import CircularProgress from "~/components/CircularProgress";

@@ -1,6 +1,6 @@
-import { Fragment } from "react";
 import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
+import { Fragment } from "react";
 import { HiLink } from "react-icons/hi";
 
 import { Tooltip } from "~/components/Tooltip";
@@ -53,13 +53,23 @@ const UpdateBoardSlugButton = ({
     ? [displayBaseUrl, workspaceSlug, boardSlug]
     : [displayBaseUrl, "boards", boardPublicId];
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!canEdit) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOnClick();
+    }
+  };
+
   return (
-    <Tooltip
-      content={!canEdit ? t`You don't have permission` : undefined}
-    >
-      <button
+    <Tooltip content={!canEdit ? t`You don't have permission` : undefined}>
+      <div
         onClick={canEdit ? handleOnClick : undefined}
-        disabled={!canEdit || isLoading}
+        onKeyDown={handleKeyDown}
+        role="button"
+        tabIndex={canEdit ? 0 : -1}
+        aria-disabled={!canEdit || isLoading}
         className="hidden cursor-pointer items-center gap-2 rounded-full border-[1px] bg-light-50 p-1 pl-4 pr-1 text-sm text-light-950 hover:bg-light-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-600 dark:bg-dark-50 dark:text-dark-900 dark:hover:bg-dark-100 xl:flex"
       >
         <div className="flex items-center">
@@ -74,21 +84,23 @@ const UpdateBoardSlugButton = ({
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            navigator.clipboard.writeText(boardUrl).then(
-              () =>
+            navigator.clipboard
+              .writeText(boardUrl)
+              .then(() =>
                 showPopup({
                   header: t`Link copied`,
                   icon: "success",
                   message: t`Board URL copied to clipboard`,
                 }),
-            ).catch(() => undefined);
+              )
+              .catch(() => undefined);
           }}
           className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-light-200 dark:hover:bg-dark-200"
           aria-label={t`Copy board link`}
         >
           <HiLink className="h-[13px] w-[13px]" />
         </button>
-      </button>
+      </div>
     </Tooltip>
   );
 };

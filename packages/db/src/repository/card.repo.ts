@@ -45,6 +45,7 @@ export const create = async (
     workspaceId: number;
     position: "start" | "end";
     dueDate?: Date | null;
+    borderColor?: string | null;
   },
 ) => {
   return db.transaction(async (tx) => {
@@ -101,6 +102,7 @@ export const create = async (
         publicId: generateUID(),
         title: cardInput.title,
         description: cardInput.description,
+        borderColor: cardInput.borderColor ?? null,
         createdBy: cardInput.createdBy,
         listId: cardInput.listId,
         index: index,
@@ -204,6 +206,7 @@ export const update = async (
     title?: string;
     description?: string;
     dueDate?: Date | null;
+    borderColor?: string | null;
   },
   args: {
     cardPublicId: string;
@@ -215,6 +218,8 @@ export const update = async (
       title: cardInput.title,
       description: cardInput.description,
       dueDate: cardInput.dueDate !== undefined ? cardInput.dueDate : undefined,
+      borderColor:
+        cardInput.borderColor !== undefined ? cardInput.borderColor : undefined,
       updatedAt: new Date(),
     })
     .where(and(eq(cards.publicId, args.cardPublicId), isNull(cards.deletedAt)))
@@ -223,6 +228,7 @@ export const update = async (
       publicId: cards.publicId,
       title: cards.title,
       description: cards.description,
+      borderColor: cards.borderColor,
       dueDate: cards.dueDate,
     });
 
@@ -257,6 +263,7 @@ export const getByPublicId = (db: dbClient, cardPublicId: string) => {
       publicId: true,
       title: true,
       description: true,
+      borderColor: true,
       listId: true,
       dueDate: true,
     },
@@ -295,6 +302,7 @@ export const bulkCreate = async (
     workspaceId: number;
     index: number;
     importId?: number;
+    borderColor?: string | null;
   }[],
 ) => {
   if (cardInput.length === 0) return [];
@@ -339,6 +347,7 @@ export const bulkCreate = async (
       publicId: string;
       title: string;
       description: string;
+      borderColor?: string | null;
       createdBy: string;
       listId: number;
       index: number;
@@ -367,6 +376,7 @@ export const bulkCreate = async (
           publicId: it.publicId,
           title: it.title,
           description: it.description,
+          borderColor: it.borderColor ?? null,
           createdBy: it.createdBy,
           listId: it.listId,
           index: nextIndex++,
@@ -487,6 +497,7 @@ export const getWithListAndMembersByPublicId = async (
       publicId: true,
       title: true,
       description: true,
+      borderColor: true,
       dueDate: true,
       createdBy: true,
       cardNumber: true,

@@ -5,6 +5,7 @@ import {
   HiLink,
   HiOutlineCheckCircle,
   HiOutlineDocumentDuplicate,
+  HiOutlineSwatch,
   HiOutlineTrash,
 } from "react-icons/hi2";
 
@@ -124,6 +125,13 @@ export default function CardDropdown({
             action: () => openModal("ADD_CHECKLIST"),
             icon: (
               <HiOutlineCheckCircle className="h-[16px] w-[16px] text-dark-900" />
+            ),
+          },
+          {
+            label: t`Border color`,
+            action: () => openModal("CHANGE_BORDER_COLOR"),
+            icon: (
+              <HiOutlineSwatch className="h-[16px] w-[16px] text-dark-900" />
             ),
           },
           {

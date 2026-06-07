@@ -1,7 +1,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
-import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import {
   TbLayoutSidebarLeftCollapse,
@@ -47,7 +46,6 @@ export default function Dashboard({
   rightPanel,
   hasRightPanel = false,
 }: DashboardProps) {
-  const { resolvedTheme } = useTheme();
   const { openModal, closeModal, modalContentType } = useModal();
   const { availableWorkspaces, hasLoaded } = useWorkspace();
   const { showPopup } = usePopup();
@@ -167,18 +165,8 @@ export default function Dashboard({
     }
   }, [user, userLoading, openModal]);
 
-  const isDarkMode = resolvedTheme === "dark";
-
   return (
     <>
-      <style jsx global>{`
-        html {
-          height: 100vh;
-          overflow: hidden;
-          min-width: 320px;
-          background-color: ${!isDarkMode ? "hsl(0deg 0% 97.3%)" : "#1c1c1c"};
-        }
-      `}</style>
       <div className="relative flex h-screen flex-col bg-light-50 dark:bg-dark-50 md:bg-light-100 md:p-3 md:dark:bg-dark-100">
         {/* Mobile Header */}
         <div className="flex h-12 items-center justify-between border-b border-light-300 bg-light-50 px-3 dark:border-dark-300 dark:bg-dark-50 md:hidden">
@@ -222,9 +210,18 @@ export default function Dashboard({
         </div>
 
         <div className="flex h-[calc(100dvh-4.5rem)] min-h-0 w-full md:h-[calc(100dvh-1.5rem)]">
+          {isSideNavOpen && (
+            <button
+              type="button"
+              aria-label={t`Close menu`}
+              onClick={closeSideNav}
+              className="fixed inset-0 top-12 z-30 bg-black/30 md:hidden"
+            />
+          )}
+
           <div
             ref={sideNavRef}
-            className={`fixed top-12 z-40 h-[calc(100dvh-3rem)] w-[calc(100vw-1.5rem)] transform transition-transform duration-300 ease-in-out md:relative md:top-0 md:h-full md:w-auto md:translate-x-0 ${isSideNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} `}
+            className={`fixed top-12 z-40 h-[calc(100dvh-3rem)] w-64 max-w-[85vw] transform transition-transform duration-300 ease-in-out md:relative md:top-0 md:h-full md:w-auto md:max-w-none md:translate-x-0 ${isSideNavOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"} `}
           >
             <SideNavigation
               user={{

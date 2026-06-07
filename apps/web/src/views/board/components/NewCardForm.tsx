@@ -27,10 +27,12 @@ import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
+import { CardBorderColorPicker } from "./CardBorderColorPicker";
 
 type NewCardFormInput = NewCardInput & {
   isCreateAnotherEnabled: boolean;
   dueDate?: Date | null;
+  borderColor?: string | null;
 };
 
 interface QueryParams {
@@ -71,6 +73,7 @@ export function NewCardForm({
       isCreateAnotherEnabled: false,
       position: "start",
       dueDate: null,
+      borderColor: null,
     },
     resetOnClose: true,
   });
@@ -87,6 +90,7 @@ export function NewCardForm({
   const title = watch("title");
   const description = watch("description");
   const dueDate = watch("dueDate");
+  const borderColor = watch("borderColor");
   const [isDateSelectorOpen, setIsDateSelectorOpen] = useState(false);
 
   // saving form state whenever form values change
@@ -146,6 +150,7 @@ export function NewCardForm({
               listId: 2,
               description: "",
               dueDate: args.dueDate ?? null,
+              borderColor: args.borderColor ?? null,
               cardNumber: null,
               comments: [],
               checklists: [],
@@ -162,11 +167,6 @@ export function NewCardForm({
                     ...member,
                     deletedAt: null,
                   })) ?? [],
-              comments: [],
-              checklists: [],
-              attachments: [],
-              _filteredLabels: labelPublicIds.map((id) => ({ publicId: id })),
-              _filteredMembers: memberPublicIds.map((id) => ({ publicId: id })),
               index: position === "start" ? 0 : list.cards.length,
             };
 
@@ -210,6 +210,7 @@ export function NewCardForm({
           isCreateAnotherEnabled,
           position,
           dueDate: null,
+          borderColor: null,
         };
         reset(newFormState);
         saveFormState(newFormState);
@@ -268,6 +269,7 @@ export function NewCardForm({
       memberPublicIds: data.memberPublicIds,
       position: data.position,
       dueDate: data.dueDate ?? null,
+      borderColor: data.borderColor ?? null,
     });
   };
 
@@ -363,6 +365,12 @@ export function NewCardForm({
           </div>
         </div>
         <div className="mt-2 flex space-x-1">
+          <div className="w-fit">
+            <CardBorderColorPicker
+              value={borderColor ?? null}
+              onChange={(value) => setValue("borderColor", value)}
+            />
+          </div>
           <div className="w-fit">
             <CheckboxDropdown
               items={formattedLists}

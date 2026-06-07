@@ -1,4 +1,4 @@
-import type { DraggableProvided } from "react-beautiful-dnd";
+import type { DraggableProvided } from "@hello-pangea/dnd";
 import { t } from "@lingui/core/macro";
 import { useState } from "react";
 import { HiXMark } from "react-icons/hi2";
