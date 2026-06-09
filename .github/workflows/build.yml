@@ -1,4 +1,4 @@
-name: Build and Push Image
+name: Build and Push Images
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }} # becomes your-user/kan
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -14,7 +14,7 @@ jobs:
 
     permissions:
       contents: read
-      packages: write # required to push to GHCR
+      packages: write
 
     steps:
       - name: Checkout
@@ -27,19 +27,44 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags + labels)
-        id: meta
+      # --- Web image ---
+
+      - name: Extract metadata for web image
+        id: meta-web
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix=sha-          # ghcr.io/you/kan:sha-a1b2c3d
-            type=raw,value=latest         # ghcr.io/you/kan:latest
+            type=sha,prefix=sha-
+            type=raw,value=latest
 
-      - name: Build and push
+      - name: Build and push web image
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./apps/web/Dockerfile
+          target: web
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-web.outputs.tags }}
+          labels: ${{ steps.meta-web.outputs.labels }}
+
+      # --- Migrate image ---
+
+      - name: Extract metadata for migrate image
+        id: meta-migrate
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-migrate
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=latest
+
+      - name: Build and push migrate image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web/Dockerfile
+          target: migrate
+          push: true
+          tags: ${{ steps.meta-migrate.outputs.tags }}
+          labels: ${{ steps.meta-migrate.outputs.labels }}
