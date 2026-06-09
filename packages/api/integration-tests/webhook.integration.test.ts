@@ -5,253 +5,359 @@ import * as webhookRepo from "@kan/db/repository/webhook.repo";
 import type { TestDbClient } from "./test-db";
 import { createTestDb, seedTestData } from "./test-db";
 
+function assertDefined<T>(value: T | null | undefined, message: string): T {
+	if (value == null) {
+		throw new Error(message);
+	}
+
+	return value;
+}
+
 describe("webhook repository integration tests", () => {
-  let db: TestDbClient;
-  let testUser: { id: string; name: string | null };
-  let testWorkspace: { id: number; publicId: string };
+	let db: TestDbClient;
+	let testUser: { id: string; name: string | null };
+	let testWorkspace: { id: number; publicId: string };
 
-  beforeEach(async () => {
-    db = await createTestDb();
-    const seeded = await seedTestData(db);
-    testUser = seeded.user;
-    testWorkspace = seeded.workspace;
-  });
+	beforeEach(async () => {
+		db = await createTestDb();
+		const seeded = await seedTestData(db);
+		testUser = seeded.user;
+		testWorkspace = seeded.workspace;
+	});
 
-  describe("create", () => {
-    it("creates a webhook with all fields", async () => {
-      const webhook = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "My Webhook",
-        url: "https://example.com/webhook",
-        secret: "my-secret",
-        events: ["card.created", "card.updated"],
-        createdBy: testUser.id,
-      });
+	describe("create", () => {
+		it("creates a webhook with all fields", async () => {
+			const webhook = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "My Webhook",
+				url: "https://example.com/webhook",
+				secret: "my-secret",
+				events: ["card.created", "card.updated"],
+				createdBy: testUser.id,
+			});
 
-      expect(webhook).not.toBeNull();
-      expect(webhook!.name).toBe("My Webhook");
-      expect(webhook!.url).toBe("https://example.com/webhook");
-      expect(webhook!.events).toEqual(["card.created", "card.updated"]);
-      expect(webhook!.active).toBe(true);
-      expect(webhook!.publicId).toMatch(/^[a-zA-Z0-9]{12}$/);
-    });
+			const createdWebhook = assertDefined(
+				webhook,
+				"Expected webhook to exist",
+			);
 
-    it("creates a webhook without secret", async () => {
-      const webhook = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "No Secret Webhook",
-        url: "https://example.com/webhook",
-        events: ["card.deleted"],
-        createdBy: testUser.id,
-      });
+			expect(createdWebhook.name).toBe("My Webhook");
+			expect(createdWebhook.url).toBe("https://example.com/webhook");
+			expect(createdWebhook.events).toEqual([
+				"card.created",
+				"card.updated",
+			]);
+			expect(createdWebhook.active).toBe(true);
+			expect(createdWebhook.publicId).toMatch(/^[a-zA-Z0-9]{12}$/);
+		});
 
-      expect(webhook).not.toBeNull();
-      expect(webhook!.name).toBe("No Secret Webhook");
-    });
-  });
+		it("creates a webhook without secret", async () => {
+			const webhook = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "No Secret Webhook",
+				url: "https://example.com/webhook",
+				events: ["card.deleted"],
+				createdBy: testUser.id,
+			});
 
-  describe("getByPublicId", () => {
-    it("retrieves a webhook by public ID", async () => {
-      const created = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Test Webhook",
-        url: "https://example.com/webhook",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+			const createdWebhook = assertDefined(
+				webhook,
+				"Expected webhook to exist",
+			);
 
-      const retrieved = await webhookRepo.getByPublicId(db, created!.publicId);
+			expect(createdWebhook.name).toBe("No Secret Webhook");
+		});
+	});
 
-      expect(retrieved).not.toBeNull();
-      expect(retrieved!.publicId).toBe(created!.publicId);
-      expect(retrieved!.name).toBe("Test Webhook");
-    });
+	describe("getByPublicId", () => {
+		it("retrieves a webhook by public ID", async () => {
+			const created = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Test Webhook",
+				url: "https://example.com/webhook",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-    it("returns null for non-existent public ID", async () => {
-      const retrieved = await webhookRepo.getByPublicId(db, "nonexistent12");
+			const createdWebhook = assertDefined(
+				created,
+				"Expected webhook to exist",
+			);
+			const retrieved = await webhookRepo.getByPublicId(
+				db,
+				createdWebhook.publicId,
+			);
+			const existingWebhook = assertDefined(
+				retrieved,
+				"Expected persisted webhook to exist",
+			);
 
-      expect(retrieved).toBeNull();
-    });
-  });
+			expect(existingWebhook.publicId).toBe(createdWebhook.publicId);
+			expect(existingWebhook.name).toBe("Test Webhook");
+		});
 
-  describe("getAllByWorkspaceId", () => {
-    it("returns all webhooks for a workspace", async () => {
-      await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Webhook 1",
-        url: "https://example.com/webhook1",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+		it("returns null for non-existent public ID", async () => {
+			const retrieved = await webhookRepo.getByPublicId(
+				db,
+				"nonexistent12",
+			);
 
-      await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Webhook 2",
-        url: "https://example.com/webhook2",
-        events: ["card.updated"],
-        createdBy: testUser.id,
-      });
+			expect(retrieved).toBeNull();
+		});
+	});
 
-      const webhooks = await webhookRepo.getAllByWorkspaceId(
-        db,
-        testWorkspace.id,
-      );
+	describe("getAllByWorkspaceId", () => {
+		it("returns all webhooks for a workspace", async () => {
+			await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Webhook 1",
+				url: "https://example.com/webhook1",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-      expect(webhooks).toHaveLength(2);
-      expect(webhooks.map((w) => w.name)).toContain("Webhook 1");
-      expect(webhooks.map((w) => w.name)).toContain("Webhook 2");
-    });
+			await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Webhook 2",
+				url: "https://example.com/webhook2",
+				events: ["card.updated"],
+				createdBy: testUser.id,
+			});
 
-    it("returns empty array for workspace with no webhooks", async () => {
-      const webhooks = await webhookRepo.getAllByWorkspaceId(
-        db,
-        testWorkspace.id,
-      );
+			const webhooks = await webhookRepo.getAllByWorkspaceId(
+				db,
+				testWorkspace.id,
+			);
 
-      expect(webhooks).toEqual([]);
-    });
-  });
+			expect(webhooks).toHaveLength(2);
+			expect(webhooks.map((w) => w.name)).toContain("Webhook 1");
+			expect(webhooks.map((w) => w.name)).toContain("Webhook 2");
+		});
 
-  describe("getActiveByWorkspaceId", () => {
-    it("returns only active webhooks", async () => {
-      const active = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Active Webhook",
-        url: "https://example.com/active",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+		it("returns empty array for workspace with no webhooks", async () => {
+			const webhooks = await webhookRepo.getAllByWorkspaceId(
+				db,
+				testWorkspace.id,
+			);
 
-      const inactive = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Inactive Webhook",
-        url: "https://example.com/inactive",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+			expect(webhooks).toEqual([]);
+		});
+	});
 
-      // Deactivate one webhook
-      await webhookRepo.update(db, inactive!.publicId, { active: false });
+	describe("getActiveByWorkspaceId", () => {
+		it("returns only active webhooks", async () => {
+			const active = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Active Webhook",
+				url: "https://example.com/active",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-      const activeWebhooks = await webhookRepo.getActiveByWorkspaceId(
-        db,
-        testWorkspace.id,
-      );
+			const inactive = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Inactive Webhook",
+				url: "https://example.com/inactive",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-      expect(activeWebhooks).toHaveLength(1);
-      // getActiveByWorkspaceId returns only publicId, url, secret, events
-      expect(activeWebhooks[0]!.url).toBe("https://example.com/active");
-      expect(activeWebhooks[0]!.publicId).toBe(active!.publicId);
-    });
-  });
+			// Deactivate one webhook
+			const inactiveWebhook = assertDefined(
+				inactive,
+				"Expected inactive webhook to exist",
+			);
 
-  describe("update", () => {
-    it("updates webhook name", async () => {
-      const created = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Original Name",
-        url: "https://example.com/webhook",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+			await webhookRepo.update(db, inactiveWebhook.publicId, {
+				active: false,
+			});
 
-      const updated = await webhookRepo.update(db, created!.publicId, {
-        name: "Updated Name",
-      });
+			const activeWebhooks = await webhookRepo.getActiveByWorkspaceId(
+				db,
+				testWorkspace.id,
+			);
 
-      expect(updated).not.toBeNull();
-      expect(updated!.name).toBe("Updated Name");
-      expect(updated!.url).toBe("https://example.com/webhook"); // Unchanged
-    });
+			expect(activeWebhooks).toHaveLength(1);
+			// getActiveByWorkspaceId returns only publicId, url, secret, events
+			expect(activeWebhooks[0]?.url).toBe("https://example.com/active");
+			expect(activeWebhooks[0]?.publicId).toBe(
+				assertDefined(active, "Expected active webhook to exist")
+					.publicId,
+			);
+		});
+	});
 
-    it("updates webhook events", async () => {
-      const created = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Test Webhook",
-        url: "https://example.com/webhook",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+	describe("update", () => {
+		it("updates webhook name", async () => {
+			const created = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Original Name",
+				url: "https://example.com/webhook",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-      const updated = await webhookRepo.update(db, created!.publicId, {
-        events: ["card.created", "card.updated", "card.deleted"],
-      });
+			const createdWebhook = assertDefined(
+				created,
+				"Expected webhook to exist",
+			);
+			const updated = await webhookRepo.update(
+				db,
+				createdWebhook.publicId,
+				{
+					name: "Updated Name",
+				},
+			);
+			const updatedWebhook = assertDefined(
+				updated,
+				"Expected update to succeed",
+			);
 
-      expect(updated!.events).toEqual([
-        "card.created",
-        "card.updated",
-        "card.deleted",
-      ]);
-    });
+			expect(updatedWebhook.name).toBe("Updated Name");
+			expect(updatedWebhook.url).toBe("https://example.com/webhook"); // Unchanged
+		});
 
-    it("updates webhook active status", async () => {
-      const created = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Test Webhook",
-        url: "https://example.com/webhook",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+		it("updates webhook events", async () => {
+			const created = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Test Webhook",
+				url: "https://example.com/webhook",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-      expect(created!.active).toBe(true);
+			const createdWebhook = assertDefined(
+				created,
+				"Expected webhook to exist",
+			);
+			const updated = await webhookRepo.update(
+				db,
+				createdWebhook.publicId,
+				{
+					events: ["card.created", "card.updated", "card.deleted"],
+				},
+			);
+			const updatedWebhook = assertDefined(
+				updated,
+				"Expected update to succeed",
+			);
 
-      const updated = await webhookRepo.update(db, created!.publicId, {
-        active: false,
-      });
+			expect(updatedWebhook.events).toEqual([
+				"card.created",
+				"card.updated",
+				"card.deleted",
+			]);
+		});
 
-      expect(updated!.active).toBe(false);
-    });
+		it("updates webhook active status", async () => {
+			const created = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Test Webhook",
+				url: "https://example.com/webhook",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-    it("sets updatedAt timestamp on update", async () => {
-      const created = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "Test Webhook",
-        url: "https://example.com/webhook",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+			const createdWebhook = assertDefined(
+				created,
+				"Expected webhook to exist",
+			);
 
-      // create() doesn't return updatedAt, verify via getByPublicId
-      const initial = await webhookRepo.getByPublicId(db, created!.publicId);
-      expect(initial!.updatedAt).toBeNull();
+			expect(createdWebhook.active).toBe(true);
 
-      const updated = await webhookRepo.update(db, created!.publicId, {
-        name: "Updated",
-      });
+			const updated = await webhookRepo.update(
+				db,
+				createdWebhook.publicId,
+				{
+					active: false,
+				},
+			);
+			const updatedWebhook = assertDefined(
+				updated,
+				"Expected update to succeed",
+			);
 
-      expect(updated!.updatedAt).not.toBeNull();
-      expect(updated!.updatedAt).toBeInstanceOf(Date);
-    });
+			expect(updatedWebhook.active).toBe(false);
+		});
 
-    it("returns null for non-existent webhook", async () => {
-      const updated = await webhookRepo.update(db, "nonexistent12", {
-        name: "Updated",
-      });
+		it("sets updatedAt timestamp on update", async () => {
+			const created = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "Test Webhook",
+				url: "https://example.com/webhook",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
 
-      expect(updated).toBeNull();
-    });
-  });
+			// create() doesn't return updatedAt, verify via getByPublicId
+			const createdWebhook = assertDefined(
+				created,
+				"Expected webhook to exist",
+			);
+			const initial = await webhookRepo.getByPublicId(
+				db,
+				createdWebhook.publicId,
+			);
+			const initialWebhook = assertDefined(
+				initial,
+				"Expected webhook to exist",
+			);
 
-  describe("hardDelete", () => {
-    it("deletes a webhook permanently", async () => {
-      const created = await webhookRepo.create(db, {
-        workspaceId: testWorkspace.id,
-        name: "To Be Deleted",
-        url: "https://example.com/webhook",
-        events: ["card.created"],
-        createdBy: testUser.id,
-      });
+			expect(initialWebhook.updatedAt).toBeNull();
 
-      await webhookRepo.hardDelete(db, created!.publicId);
+			const updated = await webhookRepo.update(
+				db,
+				createdWebhook.publicId,
+				{
+					name: "Updated",
+				},
+			);
+			const updatedWebhook = assertDefined(
+				updated,
+				"Expected update to succeed",
+			);
 
-      const retrieved = await webhookRepo.getByPublicId(db, created!.publicId);
-      expect(retrieved).toBeNull();
-    });
+			expect(updatedWebhook.updatedAt).not.toBeNull();
+			expect(updatedWebhook.updatedAt).toBeInstanceOf(Date);
+		});
 
-    it("does not throw for non-existent webhook", async () => {
-      await expect(
-        webhookRepo.hardDelete(db, "nonexistent12"),
-      ).resolves.not.toThrow();
-    });
-  });
+		it("returns null for non-existent webhook", async () => {
+			const updated = await webhookRepo.update(db, "nonexistent12", {
+				name: "Updated",
+			});
+
+			expect(updated).toBeNull();
+		});
+	});
+
+	describe("hardDelete", () => {
+		it("deletes a webhook permanently", async () => {
+			const created = await webhookRepo.create(db, {
+				workspaceId: testWorkspace.id,
+				name: "To Be Deleted",
+				url: "https://example.com/webhook",
+				events: ["card.created"],
+				createdBy: testUser.id,
+			});
+
+			const createdWebhook = assertDefined(
+				created,
+				"Expected webhook to exist",
+			);
+
+			await webhookRepo.hardDelete(db, createdWebhook.publicId);
+
+			const retrieved = await webhookRepo.getByPublicId(
+				db,
+				createdWebhook.publicId,
+			);
+			expect(retrieved).toBeNull();
+		});
+
+		it("does not throw for non-existent webhook", async () => {
+			await expect(
+				webhookRepo.hardDelete(db, "nonexistent12"),
+			).resolves.not.toThrow();
+		});
+	});
 });

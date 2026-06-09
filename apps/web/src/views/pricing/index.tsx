@@ -2,7 +2,7 @@ import { t } from "@lingui/core/macro";
 import { useTheme } from "next-themes";
 import { useState } from "react";
 
-import Button from "~/components/Button";
+import _Button from "~/components/Button";
 import { PageHead } from "~/components/PageHead";
 import Cta from "../home/components/Cta";
 import Layout from "../home/components/Layout";

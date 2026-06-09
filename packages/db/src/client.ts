@@ -13,29 +13,29 @@ import * as schema from "./schema";
 const log = createLogger("db");
 
 export type dbClient = NodePgDatabase<typeof schema> & {
-  $client: Pool;
+	$client: Pool;
 };
 
 export const createDrizzleClient = (): dbClient => {
-  const connectionString = process.env.POSTGRES_URL;
+	const connectionString = process.env.POSTGRES_URL;
 
-  if (!connectionString) {
-    log.warn("POSTGRES_URL not set, falling back to PGLite");
+	if (!connectionString) {
+		log.warn("POSTGRES_URL not set, falling back to PGLite");
 
-    const client = new PGlite({
-      dataDir: "./pgdata",
-      extensions: { uuid_ossp },
-    });
-    const db = drizzlePgLite(client, { schema });
+		const client = new PGlite({
+			dataDir: "./pgdata",
+			extensions: { uuid_ossp },
+		});
+		const db = drizzlePgLite(client, { schema });
 
-    migrate(db, { migrationsFolder: "../../packages/db/migrations" });
+		void migrate(db, { migrationsFolder: "../../packages/db/migrations" });
 
-    return db as unknown as dbClient;
-  }
+		return db as unknown as dbClient;
+	}
 
-  const pool = new Pool({
-    connectionString,
-  });
+	const pool = new Pool({
+		connectionString,
+	});
 
-  return drizzlePg(pool, { schema }) as dbClient;
+	return drizzlePg(pool, { schema }) as dbClient;
 };

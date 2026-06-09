@@ -57,7 +57,7 @@ export default function UnsubscribePage() {
       }
 
       setStatus("success");
-    } catch (error) {
+    } catch (_error) {
       setStatus("error");
       setErrorMessage(
         t`We couldn't update your preferences. Please try again.`,

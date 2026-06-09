@@ -11,36 +11,36 @@ const log = createLogger("webhook");
 export type WebhookEventType = WebhookEvent;
 
 export interface WebhookPayload {
-  event: WebhookEventType;
-  timestamp: string;
-  data: {
-    card: {
-      id: string;
-      publicId: string;
-      title: string;
-      description?: string | null;
-      dueDate?: string | null; // ISO string after JSON serialization
-      listId: string;
-      boardId: string;
-    };
-    board?: {
-      id: string;
-      name: string;
-    };
-    list?: {
-      id: string;
-      name: string;
-    };
-    user?: {
-      id: string;
-      name: string | null;
-    };
-    changes?: Record<string, { from: unknown; to: unknown }>;
-  };
+	event: WebhookEventType;
+	timestamp: string;
+	data: {
+		card: {
+			id: string;
+			publicId: string;
+			title: string;
+			description?: string | null;
+			dueDate?: string | null; // ISO string after JSON serialization
+			listId: string;
+			boardId: string;
+		};
+		board?: {
+			id: string;
+			name: string;
+		};
+		list?: {
+			id: string;
+			name: string;
+		};
+		user?: {
+			id: string;
+			name: string | null;
+		};
+		changes?: Record<string, { from: unknown; to: unknown }>;
+	};
 }
 
 function generateSignature(payload: string, secret: string): string {
-  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+	return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
 /**
@@ -49,71 +49,72 @@ function generateSignature(payload: string, secret: string): string {
  * and cloud metadata endpoints.
  */
 export const webhookUrlSchema = z
-  .string()
-  .url()
-  .max(2048)
-  .refine(
-    (url) => {
-      try {
-        return new URL(url).protocol === "https:";
-      } catch {
-        return false;
-      }
-    },
-    { message: "Only HTTPS URLs are allowed" },
-  )
-  .refine(
-    (url) => {
-      try {
-        const hostname = new URL(url).hostname.toLowerCase();
-        return !(
-          hostname === "localhost" ||
-          hostname === "127.0.0.1" ||
-          hostname === "::1" ||
-          hostname === "0.0.0.0"
-        );
-      } catch {
-        return false;
-      }
-    },
-    { message: "Localhost URLs are not allowed" },
-  )
-  .refine(
-    (url) => {
-      try {
-        const hostname = new URL(url).hostname.toLowerCase();
-        return !(
-          hostname === "169.254.169.254" ||
-          hostname === "metadata.google.internal"
-        );
-      } catch {
-        return false;
-      }
-    },
-    { message: "Cloud metadata endpoints are not allowed" },
-  )
-  .refine(
-    (url) => {
-      try {
-        const hostname = new URL(url).hostname.toLowerCase();
-        const ipv4Match = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(hostname);
-        if (ipv4Match) {
-          const [, a, b] = ipv4Match.map(Number);
-          if (
-            a === 10 ||
-            (a === 172 && b! >= 16 && b! <= 31) ||
-            (a === 192 && b === 168)
-          ) {
-            return false;
-          }
-        }
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    { message: "Private IP addresses are not allowed" },
-  );
+	.string()
+	.url()
+	.max(2048)
+	.refine(
+		(url) => {
+			try {
+				return new URL(url).protocol === "https:";
+			} catch {
+				return false;
+			}
+		},
+		{ message: "Only HTTPS URLs are allowed" },
+	)
+	.refine(
+		(url) => {
+			try {
+				const hostname = new URL(url).hostname.toLowerCase();
+				return !(
+					hostname === "localhost" ||
+					hostname === "127.0.0.1" ||
+					hostname === "::1" ||
+					hostname === "0.0.0.0"
+				);
+			} catch {
+				return false;
+			}
+		},
+		{ message: "Localhost URLs are not allowed" },
+	)
+	.refine(
+		(url) => {
+			try {
+				const hostname = new URL(url).hostname.toLowerCase();
+				return !(
+					hostname === "169.254.169.254" ||
+					hostname === "metadata.google.internal"
+				);
+			} catch {
+				return false;
+			}
+		},
+		{ message: "Cloud metadata endpoints are not allowed" },
+	)
+	.refine(
+		(url) => {
+			try {
+				const hostname = new URL(url).hostname.toLowerCase();
+				const ipv4Match = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(hostname);
+				if (ipv4Match) {
+					const a = Number(ipv4Match[1]);
+					const b = Number(ipv4Match[2]);
+					if (
+						a === 10 ||
+						(a === 172 && b >= 16 && b <= 31) ||
+						(a === 192 && b === 168)
+					) {
+						return false;
+					}
+				}
+				return true;
+			} catch {
+				return false;
+			}
+		},
+		{ message: "Private IP addresses are not allowed" },
+	);
 
 /**
  * Send a webhook payload to a specific URL.
@@ -123,60 +124,60 @@ export const webhookUrlSchema = z
  * webhookUrlSchema. This function is only reachable by workspace admins.
  */
 export async function sendWebhookToUrl(
-  url: string,
-  secret: string | undefined,
-  payload: WebhookPayload,
+	url: string,
+	secret: string | undefined,
+	payload: WebhookPayload,
 ): Promise<{ success: boolean; statusCode?: number; error?: string }> {
-  const result = webhookUrlSchema.safeParse(url);
-  if (!result.success) {
-    return { success: false, error: result.error.issues[0]?.message };
-  }
+	const result = webhookUrlSchema.safeParse(url);
+	if (!result.success) {
+		return { success: false, error: result.error.issues[0]?.message };
+	}
 
-  const body = JSON.stringify(payload);
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "X-Webhook-Event": payload.event,
-    "X-Webhook-Timestamp": payload.timestamp,
-  };
+	const body = JSON.stringify(payload);
+	const headers: Record<string, string> = {
+		"Content-Type": "application/json",
+		"X-Webhook-Event": payload.event,
+		"X-Webhook-Timestamp": payload.timestamp,
+	};
 
-  if (secret) {
-    headers["X-Webhook-Signature"] = generateSignature(body, secret);
-  }
+	if (secret) {
+		headers["X-Webhook-Signature"] = generateSignature(body, secret);
+	}
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), 10000);
 
-  try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers,
-      body,
-      signal: controller.signal,
-    });
+	try {
+		const response = await fetch(url, {
+			method: "POST",
+			headers,
+			body,
+			signal: controller.signal,
+		});
 
-    clearTimeout(timeoutId);
+		clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      return {
-        success: false,
-        statusCode: response.status,
-        error: `${response.status} ${response.statusText}`,
-      };
-    }
+		if (!response.ok) {
+			return {
+				success: false,
+				statusCode: response.status,
+				error: `${response.status} ${response.statusText}`,
+			};
+		}
 
-    return { success: true, statusCode: response.status };
-  } catch (error) {
-    clearTimeout(timeoutId);
+		return { success: true, statusCode: response.status };
+	} catch (error) {
+		clearTimeout(timeoutId);
 
-    if (error instanceof Error && error.name === "AbortError") {
-      return { success: false, error: "Request timed out" };
-    }
+		if (error instanceof Error && error.name === "AbortError") {
+			return { success: false, error: "Request timed out" };
+		}
 
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : "Unknown error",
+		};
+	}
 }
 
 /**
@@ -184,100 +185,102 @@ export async function sendWebhookToUrl(
  * Wrapped in try/catch so callers using fire-and-forget don't risk unhandled rejections.
  */
 export async function sendWebhooksForWorkspace(
-  db: dbClient,
-  workspaceId: number,
-  payload: WebhookPayload,
+	db: dbClient,
+	workspaceId: number,
+	payload: WebhookPayload,
 ): Promise<void> {
-  try {
-    // Get active webhooks for this workspace and filter by event client-side
-    const allWebhooks = await webhookRepo.getActiveByWorkspaceId(
-      db,
-      workspaceId,
-    );
-    const webhooksForEvent = allWebhooks.filter((w) =>
-      w.events.includes(payload.event),
-    );
+	try {
+		// Get active webhooks for this workspace and filter by event client-side
+		const allWebhooks = await webhookRepo.getActiveByWorkspaceId(
+			db,
+			workspaceId,
+		);
+		const webhooksForEvent = allWebhooks.filter((w) =>
+			w.events.includes(payload.event),
+		);
 
-    // Send to all subscribed webhooks in parallel (fire and forget)
-    const promises = webhooksForEvent.map((webhook) =>
-      sendWebhookToUrl(webhook.url, webhook.secret ?? undefined, payload).then(
-        (result) => {
-          if (!result.success) {
-            log.error(
-              {
-                url: webhook.url,
-                event: payload.event,
-                error: result.error,
-                statusCode: result.statusCode,
-              },
-              "Webhook delivery failed",
-            );
-          } else {
-            log.info(
-              {
-                url: webhook.url,
-                event: payload.event,
-                statusCode: result.statusCode,
-              },
-              "Webhook delivered",
-            );
-          }
-        },
-      ),
-    );
+		// Send to all subscribed webhooks in parallel (fire and forget)
+		const promises = webhooksForEvent.map((webhook) =>
+			sendWebhookToUrl(
+				webhook.url,
+				webhook.secret ?? undefined,
+				payload,
+			).then((result) => {
+				if (!result.success) {
+					log.error(
+						{
+							url: webhook.url,
+							event: payload.event,
+							error: result.error,
+							statusCode: result.statusCode,
+						},
+						"Webhook delivery failed",
+					);
+				} else {
+					log.info(
+						{
+							url: webhook.url,
+							event: payload.event,
+							statusCode: result.statusCode,
+						},
+						"Webhook delivered",
+					);
+				}
+			}),
+		);
 
-    // Wait for all to complete but don't block on failures
-    await Promise.allSettled(promises);
-  } catch (error) {
-    log.error(
-      { err: error, workspaceId },
-      "Failed to send webhooks for workspace",
-    );
-  }
+		// Wait for all to complete but don't block on failures
+		await Promise.allSettled(promises);
+	} catch (error) {
+		log.error(
+			{ err: error, workspaceId },
+			"Failed to send webhooks for workspace",
+		);
+	}
 }
 
 export function createCardWebhookPayload(
-  event: WebhookEventType,
-  card: {
-    id: string;
-    publicId: string;
-    title: string;
-    description?: string | null;
-    dueDate?: Date | null;
-    listId: string;
-  },
-  context: {
-    boardId: string;
-    boardName?: string;
-    listName?: string;
-    user?: {
-      id: string;
-      name: string | null;
-    };
-    changes?: Record<string, { from: unknown; to: unknown }>;
-  },
+	event: WebhookEventType,
+	card: {
+		id: string;
+		publicId: string;
+		title: string;
+		description?: string | null;
+		dueDate?: Date | null;
+		listId: string;
+	},
+	context: {
+		boardId: string;
+		boardName?: string;
+		listName?: string;
+		user?: {
+			id: string;
+			name: string | null;
+		};
+		changes?: Record<string, { from: unknown; to: unknown }>;
+	},
 ): WebhookPayload {
-  return {
-    event,
-    timestamp: new Date().toISOString(),
-    data: {
-      card: {
-        id: card.id,
-        publicId: card.publicId,
-        title: card.title,
-        description: card.description,
-        dueDate: card.dueDate?.toISOString() ?? null,
-        listId: card.listId,
-        boardId: context.boardId,
-      },
-      board: context.boardName
-        ? { id: context.boardId, name: context.boardName }
-        : undefined,
-      list: context.listName
-        ? { id: card.listId, name: context.listName }
-        : undefined,
-      user: context.user,
-      changes: context.changes,
-    },
-  };
+	return {
+		event,
+		timestamp: new Date().toISOString(),
+		data: {
+			card: {
+				id: card.id,
+				publicId: card.publicId,
+				title: card.title,
+				description: card.description,
+				dueDate: card.dueDate?.toISOString() ?? null,
+				listId: card.listId,
+				boardId: context.boardId,
+			},
+			board: context.boardName
+				? { id: context.boardId, name: context.boardName }
+				: undefined,
+			list: context.listName
+				? { id: card.listId, name: context.listName }
+				: undefined,
+			user: context.user,
+			changes: context.changes,
+		},
+	};
 }

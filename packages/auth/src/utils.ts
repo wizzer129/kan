@@ -10,45 +10,45 @@ import { createEmailUnsubscribeLink } from "@kan/shared";
 const log = createLogger("auth");
 
 export async function downloadImage(url: string): Promise<Buffer> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`Failed to download image: ${response.statusText}`);
-  }
-  return Buffer.from(await response.arrayBuffer());
+	const response = await fetch(url);
+	if (!response.ok) {
+		throw new Error(`Failed to download image: ${response.statusText}`);
+	}
+	return Buffer.from(await response.arrayBuffer());
 }
 
 export async function triggerWorkflow(
-  db: dbClient,
-  workflowId: string,
-  subscription: Subscription,
-  cancellationDetails?: Stripe.Subscription.CancellationDetails | null,
+	db: dbClient,
+	workflowId: string,
+	subscription: Subscription,
+	cancellationDetails?: Stripe.Subscription.CancellationDetails | null,
 ) {
-  try {
-    if (!subscription.stripeCustomerId || !notificationClient) return;
+	try {
+		if (!subscription.stripeCustomerId || !notificationClient) return;
 
-    const user = await userRepo.getByStripeCustomerId(
-      db,
-      subscription.stripeCustomerId,
-    );
+		const user = await userRepo.getByStripeCustomerId(
+			db,
+			subscription.stripeCustomerId,
+		);
 
-    if (!user || !notificationClient) return;
+		if (!user) return;
 
-    const unsubscribeUrl = await createEmailUnsubscribeLink(user.id);
+		const unsubscribeUrl = await createEmailUnsubscribeLink(user.id);
 
-    log.info({ workflowId, userId: user.id }, "Triggering Novu workflow");
-    await notificationClient.trigger({
-      to: {
-        subscriberId: user.id,
-      },
-      payload: {
-        ...subscription,
-        cancellationDetails,
-        emailUnsubscribeUrl: unsubscribeUrl,
-      },
-      workflowId,
-    });
-    log.info({ workflowId, userId: user.id }, "Novu workflow triggered");
-  } catch (error) {
-    log.error({ err: error, workflowId }, "Error triggering workflow");
-  }
+		log.info({ workflowId, userId: user.id }, "Triggering Novu workflow");
+		await notificationClient.trigger({
+			to: {
+				subscriberId: user.id,
+			},
+			payload: {
+				...subscription,
+				cancellationDetails,
+				emailUnsubscribeUrl: unsubscribeUrl,
+			},
+			workflowId,
+		});
+		log.info({ workflowId, userId: user.id }, "Novu workflow triggered");
+	} catch (error) {
+		log.error({ err: error, workflowId }, "Error triggering workflow");
+	}
 }

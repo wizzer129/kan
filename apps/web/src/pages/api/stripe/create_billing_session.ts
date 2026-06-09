@@ -28,7 +28,7 @@ export default withRateLimit(
       });
 
       return res.status(200).json({ url: session.url });
-    } catch (error) {
+    } catch (_error) {
       return res.status(500).json({ error: "Error creating portal session" });
     }
   }),

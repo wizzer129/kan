@@ -93,7 +93,7 @@ export default withRateLimit(
           },
           payload.subscriberId,
         );
-      } catch (error) {
+      } catch (_error) {
         return res.status(502).json({
           success: false,
           error:

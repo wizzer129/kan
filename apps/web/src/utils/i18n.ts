@@ -46,7 +46,7 @@ export function initializeI18n(locale: Locale = defaultLocale) {
 export async function activateLocale(locale: Locale) {
   if (!loadedLocales.has(locale)) {
     const messages = await loadMessages(locale);
-    i18n.load(locale, messages);
+    i18n.load(_locale, messages);
     loadedLocales.add(locale);
   }
 

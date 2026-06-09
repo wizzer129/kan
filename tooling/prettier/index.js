@@ -31,6 +31,13 @@ const config = {
   importOrderTypeScriptVersion: "4.4.0",
   overrides: [
     {
+      files: "*.{js,jsx,ts,tsx,json}",
+      options: {
+        useTabs: true,
+        tabWidth: 4,
+      },
+    },
+    {
       files: "*.json.hbs",
       options: {
         parser: "json",

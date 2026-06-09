@@ -12,7 +12,7 @@ import { env } from "next-runtime-env";
 
 export const ResetPasswordTemplate = ({
   resetPasswordUrl,
-  resetPasswordToken,
+  resetPasswordToken: _resetPasswordToken,
 }: {
   resetPasswordUrl?: string;
   resetPasswordToken?: string;

@@ -77,7 +77,6 @@ export default function InvitePage() {
         inviteCode,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user.id, inviteCode, inviteInfo, error]);
 
   if (

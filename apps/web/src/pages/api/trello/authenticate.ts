@@ -51,7 +51,7 @@ export default withRateLimit(
       return res
         .status(200)
         .json({ message: "Trello authentication successful" });
-    } catch (err) {
+    } catch (_err) {
       return res.status(400).json({ message: "Trello authentication failed" });
     }
   }),

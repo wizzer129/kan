@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { t } from "@lingui/core/macro";
-import { useEffect } from "react";
+import { _useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 

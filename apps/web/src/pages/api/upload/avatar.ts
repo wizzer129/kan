@@ -98,7 +98,7 @@ export default withRateLimit(
         size: contentLength,
         user: updatedUser,
       });
-    } catch (error) {
+    } catch (_error) {
       return res.status(500).json({ error: "Internal server error" });
     }
   }),

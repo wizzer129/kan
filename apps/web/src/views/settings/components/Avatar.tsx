@@ -263,7 +263,7 @@ export default function Avatar({
                   circularCrop
                   className="w-full"
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  { }
                   <img
                     ref={imgRef}
                     src={selectedPreviewUrl ?? undefined}

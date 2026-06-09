@@ -9,72 +9,85 @@ const log = createLogger("api");
 
 const isCloud = process.env.NEXT_PUBLIC_KAN_ENV === "cloud";
 
+function isNonEmptyObject(value: unknown): value is Record<string, unknown> {
+	return (
+		typeof value === "object" &&
+		value !== null &&
+		Object.keys(value).length > 0
+	);
+}
+
 export function withApiLogging(
-  handler: (
-    req: NextApiRequest,
-    res: NextApiResponse,
-  ) => Promise<unknown> | unknown,
+	handler: (
+		req: NextApiRequest,
+		res: NextApiResponse,
+	) => void | Promise<void>,
 ) {
-  return async (req: NextApiRequest, res: NextApiResponse) => {
-    const start = Date.now();
-    const requestId = randomUUID();
-    const route = req.url?.split("?")[0] ?? "unknown";
-    const input = {
-      ...(req.query &&
-        Object.keys(req.query).length > 0 && { query: req.query }),
-      ...(req.body &&
-        typeof req.body === "object" &&
-        Object.keys(req.body).length > 0 && { body: req.body }),
-    };
+	return async (req: NextApiRequest, res: NextApiResponse) => {
+		const start = Date.now();
+		const requestId = randomUUID();
+		const route = req.url?.split("?")[0] ?? "unknown";
+		const input: {
+			query?: NextApiRequest["query"];
+			body?: Record<string, unknown>;
+		} = {};
 
-    let statusCode = 200;
-    const originalStatus = res.status.bind(res);
-    res.status = (code: number) => {
-      statusCode = code;
-      return originalStatus(code);
-    };
+		if (Object.keys(req.query).length > 0) {
+			input.query = req.query;
+		}
 
-    let userId: string | undefined;
-    let email: string | undefined;
-    try {
-      const ctx = await createNextApiContext(req);
-      userId = ctx.user?.id;
-      email = ctx.user?.email ?? undefined;
-    } catch {
-      // unauthenticated or auth unavailable
-    }
+		if (isNonEmptyObject(req.body)) {
+			input.body = req.body;
+		}
 
-    let handlerError: unknown;
-    try {
-      await handler(req, res);
-    } catch (err) {
-      handlerError = err;
-      statusCode = 500;
-      if (!res.headersSent) {
-        res.status(500).json({ error: "Internal server error" });
-      }
-    }
+		let statusCode = 200;
+		const originalStatus = res.status.bind(res);
+		res.status = (code: number) => {
+			statusCode = code;
+			return originalStatus(code);
+		};
 
-    const duration = Date.now() - start;
-    const meta = {
-      requestId,
-      procedure: route,
-      transport: "rest",
-      duration,
-      userId,
-      ...(isCloud && email && { email }),
-      ...(Object.keys(input).length > 0 && { input }),
-      status: statusCode,
-      ...(handlerError instanceof Error && {
-        error: handlerError.message,
-        stack: handlerError.stack,
-      }),
-    };
+		let userId: string | undefined;
+		let email: string | undefined;
+		try {
+			const ctx = await createNextApiContext(req);
+			userId = ctx.user?.id;
+			email = ctx.user?.email ?? undefined;
+		} catch {
+			// unauthenticated or auth unavailable
+		}
 
-    if (statusCode < 400) {
-      log.info(meta, "API OK");
-    } else {
-      log.error(meta, "API error");
-    }
-  };
+		let handlerError: unknown;
+		try {
+			await handler(req, res);
+		} catch (err) {
+			handlerError = err;
+			statusCode = 500;
+			if (!res.headersSent) {
+				res.status(500).json({ error: "Internal server error" });
+			}
+		}
+
+		const duration = Date.now() - start;
+		const meta = {
+			requestId,
+			procedure: route,
+			transport: "rest",
+			duration,
+			userId,
+			...(isCloud && email && { email }),
+			...(Object.keys(input).length > 0 ? { input } : {}),
+			status: statusCode,
+			...(handlerError instanceof Error && {
+				error: handlerError.message,
+				stack: handlerError.stack,
+			}),
+		};
+
+		if (statusCode < 400) {
+			log.info(meta, "API OK");
+		} else {
+			log.error(meta, "API error");
+		}
+	};
 }
