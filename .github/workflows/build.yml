@@ -35,7 +35,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix=sha-
+            type=semver,pattern={{version}}        # v1.0.0
+            type=semver,pattern={{major}}.{{minor}} # v1.0
             type=raw,value=latest
 
       - name: Build and push web image
@@ -58,7 +59,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-migrate
           tags: |
-            type=sha,prefix=sha-
+            type=semver,pattern={{version}}        # v1.0.0
+            type=semver,pattern={{major}}.{{minor}} # v1.0
             type=raw,value=latest
 
       - name: Build and push migrate image
