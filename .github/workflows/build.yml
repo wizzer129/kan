@@ -1,8 +1,8 @@
 name: Build and Push Images
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
 
 env:
   REGISTRY: ghcr.io
