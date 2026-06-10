@@ -2,20 +2,37 @@ import { t } from '@lingui/core/macro';
 import { useState } from 'react';
 import { twMerge } from 'tailwind-merge';
 
-export const BOARD_PRESET_COLORS = [
-	{ label: 'Rosewater', value: '#f2d5cf' },
-	{ label: 'Flamingo', value: '#eebebe' },
-	{ label: 'Pink', value: '#f4b8e4' },
-	{ label: 'Mauve', value: '#ca9ee6' },
-	{ label: 'Red', value: '#e78284' },
-	{ label: 'Peach', value: '#ef9f76' },
-	{ label: 'Yellow', value: '#e5c890' },
-	{ label: 'Green', value: '#a6d189' },
-	{ label: 'Teal', value: '#81c8be' },
-	{ label: 'Sky', value: '#99d1db' },
-	{ label: 'Blue', value: '#8caaee' },
-	{ label: 'Lavender', value: '#babbf1' },
+// Catppuccin Frappé
+const FRAPPE_COLORS = [
+	{ label: 'Frappé Rosewater', value: '#f2d5cf' },
+	{ label: 'Frappé Mauve', value: '#ca9ee6' },
+	{ label: 'Frappé Red', value: '#e78284' },
+	{ label: 'Frappé Peach', value: '#ef9f76' },
+	{ label: 'Frappé Yellow', value: '#e5c890' },
+	{ label: 'Frappé Green', value: '#a6d189' },
+	{ label: 'Frappé Teal', value: '#81c8be' },
+	{ label: 'Frappé Sapphire', value: '#85c1dc' },
+	{ label: 'Frappé Blue', value: '#8caaee' },
+	{ label: 'Frappé Lavender', value: '#babbf1' },
+	{ label: 'Frappé Surface', value: '#51576d' },
+	{ label: 'Frappé Base', value: '#303446' },
 ];
+
+// Dracula
+const DRACULA_COLORS = [
+	{ label: 'Dracula Purple', value: '#bd93f9' },
+	{ label: 'Dracula Pink', value: '#ff79c6' },
+	{ label: 'Dracula Red', value: '#ff5555' },
+	{ label: 'Dracula Orange', value: '#ffb86c' },
+	{ label: 'Dracula Yellow', value: '#f1fa8c' },
+	{ label: 'Dracula Green', value: '#50fa7b' },
+	{ label: 'Dracula Cyan', value: '#8be9fd' },
+	{ label: 'Dracula Comment', value: '#6272a4' },
+	{ label: 'Dracula Current', value: '#44475a' },
+	{ label: 'Dracula Background', value: '#282a36' },
+];
+
+export const BOARD_PRESET_COLORS = [...FRAPPE_COLORS, ...DRACULA_COLORS];
 
 export const DEFAULT_BOARD_BG_COLOR = '#8caaee';
 export const DEFAULT_BOARD_BORDER_COLOR = '#8caaee';
@@ -70,8 +87,11 @@ export function ColorSection({
 					</button>
 				)}
 			</div>
-			<div className="mb-2 grid grid-cols-6 gap-2">
-				{BOARD_PRESET_COLORS.map((color) => (
+			<p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-light-700 dark:text-dark-700">
+				Catppuccin Frappé
+			</p>
+			<div className="mb-2 grid grid-cols-10 gap-1.5">
+				{FRAPPE_COLORS.map((color) => (
 					<button
 						key={color.value}
 						type="button"
@@ -79,7 +99,27 @@ export function ColorSection({
 						title={color.label}
 						onClick={() => onChange(color.value)}
 						className={twMerge(
-							'h-8 w-8 rounded-md border border-black/10 shadow-sm transition-transform hover:scale-105',
+							'h-7 w-7 rounded-md border border-black/10 shadow-sm transition-transform hover:scale-105',
+							value === color.value &&
+								'ring-2 ring-offset-2 ring-offset-light-50 dark:ring-offset-dark-100',
+						)}
+						style={{ backgroundColor: color.value }}
+					/>
+				))}
+			</div>
+			<p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-light-700 dark:text-dark-700">
+				Dracula
+			</p>
+			<div className="mb-3 grid grid-cols-10 gap-1.5">
+				{DRACULA_COLORS.map((color) => (
+					<button
+						key={color.value}
+						type="button"
+						aria-label={color.label}
+						title={color.label}
+						onClick={() => onChange(color.value)}
+						className={twMerge(
+							'h-7 w-7 rounded-md border border-black/10 shadow-sm transition-transform hover:scale-105',
 							value === color.value &&
 								'ring-2 ring-offset-2 ring-offset-light-50 dark:ring-offset-dark-100',
 						)}
@@ -134,7 +174,7 @@ export function BoardColorPicker({
 						className="fixed inset-0 z-10"
 						onClick={() => setIsOpen(false)}
 					/>
-					<div className="absolute left-0 top-full z-20 mt-2 w-80 rounded-md border border-light-200 bg-light-50 p-3 shadow-lg dark:border-dark-200 dark:bg-dark-100">
+					<div className="absolute left-0 top-full z-20 mt-2 w-96 rounded-md border border-light-200 bg-light-50 p-3 shadow-lg dark:border-dark-200 dark:bg-dark-100">
 						<div className="space-y-4">
 							<ColorSection
 								label={t`Background`}
