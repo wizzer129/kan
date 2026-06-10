@@ -1,12 +1,12 @@
-import { TRPCError } from "@trpc/server";
-import { env } from "next-runtime-env";
-import { z } from "zod";
+import { TRPCError } from '@trpc/server';
+import { env } from 'next-runtime-env';
+import { z } from 'zod';
 
-import type { WorkspacePlan } from "@kan/db/schema";
-import * as subscriptionRepo from "@kan/db/repository/subscription.repo";
-import * as workspaceRepo from "@kan/db/repository/workspace.repo";
-import * as workspaceSlugRepo from "@kan/db/repository/workspaceSlug.repo";
-import { generateAvatarUrl, generateUID } from "@kan/shared/utils";
+import type { WorkspacePlan } from '@kan/db/schema';
+import * as subscriptionRepo from '@kan/db/repository/subscription.repo';
+import * as workspaceRepo from '@kan/db/repository/workspace.repo';
+import * as workspaceSlugRepo from '@kan/db/repository/workspaceSlug.repo';
+import { generateAvatarUrl, generateUID } from '@kan/shared/utils';
 
 import {
 	workspaceCreateResponseSchema,
@@ -15,20 +15,20 @@ import {
 	workspaceListItemSchema,
 	workspaceUpdateResponseSchema,
 	workspaceWithBoardsSchema,
-} from "../schemas";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
-import { assertPermission } from "../utils/permissions";
+} from '../schemas';
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
+import { assertPermission } from '../utils/permissions';
 
 export const workspaceRouter = createTRPCRouter({
 	all: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Get all workspaces",
-				method: "GET",
-				path: "/workspaces",
+				summary: 'Get all workspaces',
+				method: 'GET',
+				path: '/workspaces',
 				description:
-					"Retrieves all workspaces for the authenticated user",
-				tags: ["Workspaces"],
+					'Retrieves all workspaces for the authenticated user',
+				tags: ['Workspaces'],
 				protect: true,
 			},
 		})
@@ -40,7 +40,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const result = await workspaceRepo.getAllByUserId(ctx.db, userId);
@@ -50,11 +50,11 @@ export const workspaceRouter = createTRPCRouter({
 	byId: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Get a workspace by public ID",
-				method: "GET",
-				path: "/workspaces/{workspacePublicId}",
-				description: "Retrieves a workspace by its public ID",
-				tags: ["Workspaces"],
+				summary: 'Get a workspace by public ID',
+				method: 'GET',
+				path: '/workspaces/{workspacePublicId}',
+				description: 'Retrieves a workspace by its public ID',
+				tags: ['Workspaces'],
 				protect: true,
 			},
 		})
@@ -66,7 +66,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const result = await workspaceRepo.getByPublicIdWithMembers(
@@ -77,15 +77,15 @@ export const workspaceRouter = createTRPCRouter({
 			if (!result)
 				throw new TRPCError({
 					message: `Workspace not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
-			await assertPermission(ctx.db, userId, result.id, "workspace:view");
+			await assertPermission(ctx.db, userId, result.id, 'workspace:view');
 
 			// Check if user is an admin
 			const userMember = result.members.find(
 				(member) => member.user?.id === userId,
 			);
-			const isAdmin = userMember?.role === "admin";
+			const isAdmin = userMember?.role === 'admin';
 
 			// Show emails if user is admin OR workspace setting allows it
 			const shouldShowEmails =
@@ -158,11 +158,11 @@ export const workspaceRouter = createTRPCRouter({
 	bySlug: publicProcedure
 		.meta({
 			openapi: {
-				summary: "Get a workspace by slug",
-				method: "GET",
-				path: "/workspaces/{workspaceSlug}",
-				description: "Retrieves a workspace by its slug",
-				tags: ["Workspaces"],
+				summary: 'Get a workspace by slug',
+				method: 'GET',
+				path: '/workspaces/{workspaceSlug}',
+				description: 'Retrieves a workspace by its slug',
+				tags: ['Workspaces'],
 				protect: false,
 			},
 		})
@@ -182,7 +182,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const result = await workspaceRepo.getBySlugWithBoards(
@@ -193,20 +193,20 @@ export const workspaceRouter = createTRPCRouter({
 			if (!result)
 				throw new TRPCError({
 					message: `Workspace not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
-			await assertPermission(ctx.db, userId, result.id, "workspace:view");
+			await assertPermission(ctx.db, userId, result.id, 'workspace:view');
 
 			return result;
 		}),
 	create: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Create a workspace",
-				method: "POST",
-				path: "/workspaces",
-				description: "Creates a new workspace",
-				tags: ["Workspaces"],
+				summary: 'Create a workspace',
+				method: 'POST',
+				path: '/workspaces',
+				description: 'Creates a new workspace',
+				tags: ['Workspaces'],
 				protect: true,
 			},
 		})
@@ -230,15 +230,15 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId || !userEmail)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			// Check if slug is provided in cloud environment
-			if (input.slug && env("NEXT_PUBLIC_KAN_ENV") === "cloud") {
+			if (input.slug && env('NEXT_PUBLIC_KAN_ENV') === 'cloud') {
 				throw new TRPCError({
 					message:
-						"Custom URLs are only available for Pro workspaces",
-					code: "BAD_REQUEST",
+						'Custom URLs are only available for Pro workspaces',
+					code: 'BAD_REQUEST',
 				});
 			}
 
@@ -261,14 +261,14 @@ export const workspaceRouter = createTRPCRouter({
 				if (reservedOrPremiumWorkspaceSlug) {
 					throw new TRPCError({
 						message: `Workspace slug '${input.slug}' is reserved or premium`,
-						code: "BAD_REQUEST",
+						code: 'BAD_REQUEST',
 					});
 				}
 
 				if (!isWorkspaceSlugAvailable) {
 					throw new TRPCError({
 						message: `Workspace slug '${input.slug}' is already taken`,
-						code: "BAD_REQUEST",
+						code: 'BAD_REQUEST',
 					});
 				}
 			}
@@ -285,13 +285,13 @@ export const workspaceRouter = createTRPCRouter({
 			if (!result.publicId)
 				throw new TRPCError({
 					message: `Unable to create workspace`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			if (!result.name || !result.slug || !result.cardPrefix)
 				throw new TRPCError({
 					message: `Workspace response is missing required fields`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			let unlinkedSlot: Awaited<
@@ -300,7 +300,7 @@ export const workspaceRouter = createTRPCRouter({
 				>
 			>;
 
-			if (env("NEXT_PUBLIC_KAN_ENV") === "cloud") {
+			if (env('NEXT_PUBLIC_KAN_ENV') === 'cloud') {
 				const memberships = await workspaceRepo.getAllByUserId(
 					ctx.db,
 					userId,
@@ -348,11 +348,11 @@ export const workspaceRouter = createTRPCRouter({
 	update: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Update a workspace",
-				method: "PUT",
-				path: "/workspaces/{workspacePublicId}",
-				description: "Updates a workspace by its public ID",
-				tags: ["Workspaces"],
+				summary: 'Update a workspace',
+				method: 'PUT',
+				path: '/workspaces/{workspacePublicId}',
+				description: 'Updates a workspace by its public ID',
+				tags: ['Workspaces'],
 				protect: true,
 			},
 		})
@@ -380,7 +380,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const workspace = await workspaceRepo.getByPublicId(
@@ -391,13 +391,13 @@ export const workspaceRouter = createTRPCRouter({
 			if (!workspace)
 				throw new TRPCError({
 					message: `Workspace not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 			await assertPermission(
 				ctx.db,
 				userId,
 				workspace.id,
-				"workspace:edit",
+				'workspace:edit',
 			);
 
 			if (input.slug) {
@@ -414,23 +414,23 @@ export const workspaceRouter = createTRPCRouter({
 					);
 
 				if (
-					env("NEXT_PUBLIC_KAN_ENV") === "cloud" &&
-					workspace.plan !== "pro" &&
+					env('NEXT_PUBLIC_KAN_ENV') === 'cloud' &&
+					workspace.plan !== 'pro' &&
 					input.slug !== workspace.publicId
 				) {
 					throw new TRPCError({
 						message: `Workspace slug cannot be changed in cloud without upgrading to a paid plan`,
-						code: "FORBIDDEN",
+						code: 'FORBIDDEN',
 					});
 				}
 
 				if (
-					reservedOrPremiumWorkspaceSlug?.type === "reserved" ||
+					reservedOrPremiumWorkspaceSlug?.type === 'reserved' ||
 					!isWorkspaceSlugAvailable
 				) {
 					throw new TRPCError({
 						message: `Workspace slug already taken`,
-						code: "CONFLICT",
+						code: 'CONFLICT',
 					});
 				}
 			}
@@ -450,7 +450,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!result)
 				throw new TRPCError({
 					message: `Unable to delete workspace`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			return result;
@@ -458,11 +458,11 @@ export const workspaceRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Delete a workspace",
-				method: "DELETE",
-				path: "/workspaces/{workspacePublicId}",
-				description: "Deletes a workspace by its public ID",
-				tags: ["Workspaces"],
+				summary: 'Delete a workspace',
+				method: 'DELETE',
+				path: '/workspaces/{workspacePublicId}',
+				description: 'Deletes a workspace by its public ID',
+				tags: ['Workspaces'],
 				protect: true,
 			},
 		})
@@ -474,7 +474,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const workspace = await workspaceRepo.getByPublicId(
@@ -485,16 +485,16 @@ export const workspaceRouter = createTRPCRouter({
 			if (!workspace)
 				throw new TRPCError({
 					message: `Workspace not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 			await assertPermission(
 				ctx.db,
 				userId,
 				workspace.id,
-				"workspace:delete",
+				'workspace:delete',
 			);
 
-			if (env("NEXT_PUBLIC_KAN_ENV") === "cloud") {
+			if (env('NEXT_PUBLIC_KAN_ENV') === 'cloud') {
 				const subs = await subscriptionRepo.getByReferenceId(
 					ctx.db,
 					input.workspacePublicId,
@@ -517,11 +517,11 @@ export const workspaceRouter = createTRPCRouter({
 	checkSlugAvailability: publicProcedure
 		.meta({
 			openapi: {
-				summary: "Check if a workspace slug is available",
-				method: "GET",
-				path: "/workspaces/check-slug-availability",
-				description: "Checks if a workspace slug is available",
-				tags: ["Workspaces"],
+				summary: 'Check if a workspace slug is available',
+				method: 'GET',
+				path: '/workspaces/check-slug-availability',
+				description: 'Checks if a workspace slug is available',
+				tags: ['Workspaces'],
 				protect: true,
 			},
 		})
@@ -546,7 +546,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const slug = input.workspaceSlug.toLowerCase();
@@ -561,10 +561,10 @@ export const workspaceRouter = createTRPCRouter({
 				await workspaceRepo.isWorkspaceSlugAvailable(ctx.db, slug);
 
 			const isAvailable =
-				isWorkspaceSlugAvailable && workspaceSlug?.type !== "reserved";
-			const isReserved = workspaceSlug?.type === "reserved";
+				isWorkspaceSlugAvailable && workspaceSlug?.type !== 'reserved';
+			const isReserved = workspaceSlug?.type === 'reserved';
 
-			if (env("NEXT_PUBLIC_KAN_ENV") === "cloud") {
+			if (env('NEXT_PUBLIC_KAN_ENV') === 'cloud') {
 				await workspaceSlugRepo.createWorkspaceSlugCheck(ctx.db, {
 					slug,
 					userId,
@@ -576,19 +576,19 @@ export const workspaceRouter = createTRPCRouter({
 			return {
 				isAvailable:
 					isWorkspaceSlugAvailable &&
-					workspaceSlug?.type !== "reserved",
-				isReserved: workspaceSlug?.type === "reserved",
+					workspaceSlug?.type !== 'reserved',
+				isReserved: workspaceSlug?.type === 'reserved',
 			};
 		}),
 	search: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Search boards and cards in a workspace",
-				method: "GET",
-				path: "/workspaces/{workspacePublicId}/search",
+				summary: 'Search boards and cards in a workspace',
+				method: 'GET',
+				path: '/workspaces/{workspacePublicId}/search',
 				description:
-					"Searches for boards and cards by title within a workspace",
-				tags: ["Workspaces"],
+					'Searches for boards and cards by title within a workspace',
+				tags: ['Workspaces'],
 				protect: true,
 			},
 		})
@@ -601,7 +601,7 @@ export const workspaceRouter = createTRPCRouter({
 		)
 		.output(
 			z.array(
-				z.discriminatedUnion("type", [
+				z.discriminatedUnion('type', [
 					z.object({
 						publicId: z.string(),
 						title: z.string(),
@@ -609,7 +609,7 @@ export const workspaceRouter = createTRPCRouter({
 						slug: z.string(),
 						updatedAt: z.date().nullable(),
 						createdAt: z.date(),
-						type: z.literal("board"),
+						type: z.literal('board'),
 					}),
 					z.object({
 						publicId: z.string(),
@@ -621,7 +621,7 @@ export const workspaceRouter = createTRPCRouter({
 						cardNumber: z.number().nullable(),
 						updatedAt: z.date().nullable(),
 						createdAt: z.date(),
-						type: z.literal("card"),
+						type: z.literal('card'),
 					}),
 				]),
 			),
@@ -632,7 +632,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const workspace = await workspaceRepo.getByPublicId(
@@ -643,13 +643,13 @@ export const workspaceRouter = createTRPCRouter({
 			if (!workspace)
 				throw new TRPCError({
 					message: `Workspace not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 			await assertPermission(
 				ctx.db,
 				userId,
 				workspace.id,
-				"workspace:view",
+				'workspace:view',
 			);
 
 			const result = await workspaceRepo.searchBoardsAndCards(
@@ -670,7 +670,7 @@ export const workspaceRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const memberships = await workspaceRepo.getAllByUserId(

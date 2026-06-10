@@ -1,14 +1,14 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
-import * as cardRepo from "@kan/db/repository/card.repo";
-import * as cardActivityRepo from "@kan/db/repository/cardActivity.repo";
-import * as cardCommentRepo from "@kan/db/repository/cardComment.repo";
-import * as checklistRepo from "@kan/db/repository/checklist.repo";
-import * as labelRepo from "@kan/db/repository/label.repo";
-import * as listRepo from "@kan/db/repository/list.repo";
-import * as workspaceRepo from "@kan/db/repository/workspace.repo";
-import { generateAttachmentUrl, generateAvatarUrl } from "@kan/shared/utils";
+import * as cardRepo from '@kan/db/repository/card.repo';
+import * as cardActivityRepo from '@kan/db/repository/cardActivity.repo';
+import * as cardCommentRepo from '@kan/db/repository/cardComment.repo';
+import * as checklistRepo from '@kan/db/repository/checklist.repo';
+import * as labelRepo from '@kan/db/repository/label.repo';
+import * as listRepo from '@kan/db/repository/list.repo';
+import * as workspaceRepo from '@kan/db/repository/workspace.repo';
+import { generateAttachmentUrl, generateAvatarUrl } from '@kan/shared/utils';
 
 import {
 	activityItemSchema,
@@ -17,29 +17,29 @@ import {
 	cardUpdateResponseSchema,
 	commentDeleteResponseSchema,
 	commentResponseSchema,
-} from "../schemas";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
-import { mergeActivities } from "../utils/activities";
-import { sendMentionEmails } from "../utils/notifications";
+} from '../schemas';
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
+import { mergeActivities } from '../utils/activities';
+import { sendMentionEmails } from '../utils/notifications';
 import {
 	assertCanDelete,
 	assertCanEdit,
 	assertPermission,
-} from "../utils/permissions";
+} from '../utils/permissions';
 import {
 	createCardWebhookPayload,
 	sendWebhooksForWorkspace,
-} from "../utils/webhook";
+} from '../utils/webhook';
 
 export const cardRouter = createTRPCRouter({
 	create: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Create a card",
-				method: "POST",
-				path: "/cards",
-				description: "Creates a new card for a given list",
-				tags: ["Cards"],
+				summary: 'Create a card',
+				method: 'POST',
+				path: '/cards',
+				description: 'Creates a new card for a given list',
+				tags: ['Cards'],
 				protect: true,
 			},
 		})
@@ -50,7 +50,7 @@ export const cardRouter = createTRPCRouter({
 				listPublicId: z.string().min(12),
 				labelPublicIds: z.array(z.string().min(12)),
 				memberPublicIds: z.array(z.string().min(12)),
-				position: z.enum(["start", "end"]),
+				position: z.enum(['start', 'end']),
 				dueDate: z.date().nullable().optional(),
 				borderColor: z
 					.string()
@@ -66,7 +66,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const list = await listRepo.getWorkspaceAndListIdByListPublicId(
@@ -77,14 +77,14 @@ export const cardRouter = createTRPCRouter({
 			if (!list)
 				throw new TRPCError({
 					message: `List with public ID ${input.listPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				list.workspaceId,
-				"card:create",
+				'card:create',
 			);
 
 			const newCard = await cardRepo.create(ctx.db, {
@@ -103,7 +103,7 @@ export const cardRouter = createTRPCRouter({
 			if (!newCardId)
 				throw new TRPCError({
 					message: `Failed to create card`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			if (newCardId && input.labelPublicIds.length) {
@@ -114,8 +114,8 @@ export const cardRouter = createTRPCRouter({
 
 				if (!labels.length)
 					throw new TRPCError({
-						message: `Labels with public IDs (${input.labelPublicIds.join(", ")}) not found`,
-						code: "NOT_FOUND",
+						message: `Labels with public IDs (${input.labelPublicIds.join(', ')}) not found`,
+						code: 'NOT_FOUND',
 					});
 
 				const labelsInsert = labels.map((label) => ({
@@ -132,11 +132,11 @@ export const cardRouter = createTRPCRouter({
 				if (!cardLabels.length)
 					throw new TRPCError({
 						message: `Failed to create card label relationships`,
-						code: "INTERNAL_SERVER_ERROR",
+						code: 'INTERNAL_SERVER_ERROR',
 					});
 
 				const cardActivitesInsert = cardLabels.map((cardLabel) => ({
-					type: "card.updated.label.added" as const,
+					type: 'card.updated.label.added' as const,
 					cardId: cardLabel.cardId,
 					labelId: cardLabel.labelId,
 					createdBy: userId,
@@ -153,8 +153,8 @@ export const cardRouter = createTRPCRouter({
 
 				if (!members.length)
 					throw new TRPCError({
-						message: `Members with public IDs (${input.memberPublicIds.join(", ")}) not found`,
-						code: "NOT_FOUND",
+						message: `Members with public IDs (${input.memberPublicIds.join(', ')}) not found`,
+						code: 'NOT_FOUND',
 					});
 
 				const membersInsert = members.map((member) => ({
@@ -171,11 +171,11 @@ export const cardRouter = createTRPCRouter({
 				if (!cardMembers.length)
 					throw new TRPCError({
 						message: `Failed to create card member relationships`,
-						code: "INTERNAL_SERVER_ERROR",
+						code: 'INTERNAL_SERVER_ERROR',
 					});
 
 				const cardActivitesInsert = cardMembers.map((cardMember) => ({
-					type: "card.updated.member.added" as const,
+					type: 'card.updated.member.added' as const,
 					cardId: cardMember.cardId,
 					workspaceMemberId: cardMember.workspaceMemberId,
 					createdBy: userId,
@@ -191,7 +191,7 @@ export const cardRouter = createTRPCRouter({
 					commentHtml: input.description,
 					commenterUserId: userId,
 				}).catch((error) => {
-					console.error("Failed to send mention emails:", error);
+					console.error('Failed to send mention emails:', error);
 				});
 			}
 
@@ -200,7 +200,7 @@ export const cardRouter = createTRPCRouter({
 				ctx.db,
 				list.workspaceId,
 				createCardWebhookPayload(
-					"card.created",
+					'card.created',
 					{
 						id: String(newCard.id),
 						publicId: newCard.publicId,
@@ -219,7 +219,7 @@ export const cardRouter = createTRPCRouter({
 					},
 				),
 			).catch((error) => {
-				console.error("Webhook delivery failed:", error);
+				console.error('Webhook delivery failed:', error);
 			});
 
 			return newCard;
@@ -227,11 +227,11 @@ export const cardRouter = createTRPCRouter({
 	addComment: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Add a comment to a card",
-				method: "POST",
-				path: "/cards/{cardPublicId}/comments",
-				description: "Adds a comment to a card",
-				tags: ["Cards"],
+				summary: 'Add a comment to a card',
+				method: 'POST',
+				path: '/cards/{cardPublicId}/comments',
+				description: 'Adds a comment to a card',
+				tags: ['Cards'],
 				protect: true,
 			},
 		})
@@ -248,7 +248,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
@@ -259,14 +259,14 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				card.workspaceId,
-				"comment:create",
+				'comment:create',
 			);
 
 			const newComment = await cardCommentRepo.create(ctx.db, {
@@ -278,11 +278,11 @@ export const cardRouter = createTRPCRouter({
 			if (!newComment?.id)
 				throw new TRPCError({
 					message: `Failed to create comment`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			await cardActivityRepo.create(ctx.db, {
-				type: "card.updated.comment.added" as const,
+				type: 'card.updated.comment.added' as const,
 				cardId: card.id,
 				commentId: newComment.id,
 				toComment: newComment.comment,
@@ -296,7 +296,7 @@ export const cardRouter = createTRPCRouter({
 				commenterUserId: userId,
 				commentId: newComment.id,
 			}).catch((error) => {
-				console.error("Failed to send mention emails:", error);
+				console.error('Failed to send mention emails:', error);
 			});
 
 			return newComment;
@@ -304,11 +304,11 @@ export const cardRouter = createTRPCRouter({
 	updateComment: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Update a comment",
-				method: "PUT",
-				path: "/cards/{cardPublicId}/comments/{commentPublicId}",
-				description: "Updates a comment",
-				tags: ["Cards"],
+				summary: 'Update a comment',
+				method: 'PUT',
+				path: '/cards/{cardPublicId}/comments/{commentPublicId}',
+				description: 'Updates a comment',
+				tags: ['Cards'],
 				protect: true,
 			},
 		})
@@ -326,7 +326,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
@@ -337,7 +337,7 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			const existingComment = await cardCommentRepo.getByPublicId(
@@ -348,14 +348,14 @@ export const cardRouter = createTRPCRouter({
 			if (!existingComment)
 				throw new TRPCError({
 					message: `Comment with public ID ${input.commentPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanEdit(
 				ctx.db,
 				userId,
 				card.workspaceId,
-				"comment:edit",
+				'comment:edit',
 				existingComment.createdBy,
 			);
 
@@ -367,11 +367,11 @@ export const cardRouter = createTRPCRouter({
 			if (!updatedComment?.id)
 				throw new TRPCError({
 					message: `Failed to update comment`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			await cardActivityRepo.create(ctx.db, {
-				type: "card.updated.comment.updated" as const,
+				type: 'card.updated.comment.updated' as const,
 				cardId: card.id,
 				commentId: updatedComment.id,
 				fromComment: existingComment.comment,
@@ -386,7 +386,7 @@ export const cardRouter = createTRPCRouter({
 				commenterUserId: userId,
 				commentId: updatedComment.id,
 			}).catch((error) => {
-				console.error("Failed to send mention emails:", error);
+				console.error('Failed to send mention emails:', error);
 			});
 
 			return updatedComment;
@@ -394,11 +394,11 @@ export const cardRouter = createTRPCRouter({
 	deleteComment: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Delete a comment",
-				method: "DELETE",
-				path: "/cards/{cardPublicId}/comments/{commentPublicId}",
-				description: "Deletes a comment",
-				tags: ["Cards"],
+				summary: 'Delete a comment',
+				method: 'DELETE',
+				path: '/cards/{cardPublicId}/comments/{commentPublicId}',
+				description: 'Deletes a comment',
+				tags: ['Cards'],
 			},
 		})
 		.input(
@@ -414,7 +414,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
@@ -425,7 +425,7 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			const existingComment = await cardCommentRepo.getByPublicId(
@@ -436,14 +436,14 @@ export const cardRouter = createTRPCRouter({
 			if (!existingComment)
 				throw new TRPCError({
 					message: `Comment with public ID ${input.commentPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanDelete(
 				ctx.db,
 				userId,
 				card.workspaceId,
-				"comment:delete",
+				'comment:delete',
 				existingComment.createdBy,
 			);
 
@@ -456,11 +456,11 @@ export const cardRouter = createTRPCRouter({
 			if (!deletedComment)
 				throw new TRPCError({
 					message: `Failed to delete comment`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			await cardActivityRepo.create(ctx.db, {
-				type: "card.updated.comment.deleted" as const,
+				type: 'card.updated.comment.deleted' as const,
 				cardId: card.id,
 				commentId: existingComment.id,
 				createdBy: userId,
@@ -471,11 +471,11 @@ export const cardRouter = createTRPCRouter({
 	addOrRemoveLabel: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Add or remove a label from a card",
-				method: "PUT",
-				path: "/cards/{cardPublicId}/labels/{labelPublicId}",
-				description: "Adds or removes a label from a card",
-				tags: ["Cards"],
+				summary: 'Add or remove a label from a card',
+				method: 'PUT',
+				path: '/cards/{cardPublicId}/labels/{labelPublicId}',
+				description: 'Adds or removes a label from a card',
+				tags: ['Cards'],
 				protect: true,
 			},
 		})
@@ -492,7 +492,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
@@ -503,14 +503,14 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				card.workspaceId,
-				"card:edit",
+				'card:edit',
 			);
 
 			const label = await labelRepo.getByPublicId(
@@ -521,7 +521,7 @@ export const cardRouter = createTRPCRouter({
 			if (!label)
 				throw new TRPCError({
 					message: `Label with public ID ${input.labelPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			const cardLabelIds = { cardId: card.id, labelId: label.id };
@@ -541,11 +541,11 @@ export const cardRouter = createTRPCRouter({
 				if (!deletedCardLabelRelationship)
 					throw new TRPCError({
 						message: `Failed to remove label from card`,
-						code: "INTERNAL_SERVER_ERROR",
+						code: 'INTERNAL_SERVER_ERROR',
 					});
 
 				await cardActivityRepo.create(ctx.db, {
-					type: "card.updated.label.removed" as const,
+					type: 'card.updated.label.removed' as const,
 					cardId: card.id,
 					labelId: label.id,
 					createdBy: userId,
@@ -563,11 +563,11 @@ export const cardRouter = createTRPCRouter({
 			if (!newCardLabelRelationship)
 				throw new TRPCError({
 					message: `Failed to add label to card`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			await cardActivityRepo.create(ctx.db, {
-				type: "card.updated.label.added" as const,
+				type: 'card.updated.label.added' as const,
 				cardId: card.id,
 				labelId: label.id,
 				createdBy: userId,
@@ -578,11 +578,11 @@ export const cardRouter = createTRPCRouter({
 	addOrRemoveMember: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Add or remove a member from a card",
-				method: "PUT",
-				path: "/cards/{cardPublicId}/members/{workspaceMemberPublicId}",
-				description: "Adds or removes a member from a card",
-				tags: ["Cards"],
+				summary: 'Add or remove a member from a card',
+				method: 'PUT',
+				path: '/cards/{cardPublicId}/members/{workspaceMemberPublicId}',
+				description: 'Adds or removes a member from a card',
+				tags: ['Cards'],
 			},
 		})
 		.input(
@@ -598,7 +598,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
@@ -609,14 +609,14 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				card.workspaceId,
-				"card:edit",
+				'card:edit',
 			);
 
 			const member = await workspaceRepo.getMemberByPublicId(
@@ -627,7 +627,7 @@ export const cardRouter = createTRPCRouter({
 			if (!member)
 				throw new TRPCError({
 					message: `Member with public ID ${input.workspaceMemberPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			const cardMemberIds = { cardId: card.id, memberId: member.id };
@@ -647,11 +647,11 @@ export const cardRouter = createTRPCRouter({
 				if (!deletedCardMemberRelationship.success)
 					throw new TRPCError({
 						message: `Failed to remove member from card`,
-						code: "INTERNAL_SERVER_ERROR",
+						code: 'INTERNAL_SERVER_ERROR',
 					});
 
 				await cardActivityRepo.create(ctx.db, {
-					type: "card.updated.member.removed" as const,
+					type: 'card.updated.member.removed' as const,
 					cardId: card.id,
 					workspaceMemberId: member.id,
 					createdBy: userId,
@@ -669,11 +669,11 @@ export const cardRouter = createTRPCRouter({
 			if (!newCardMemberRelationship.success)
 				throw new TRPCError({
 					message: `Failed to add member to card`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			await cardActivityRepo.create(ctx.db, {
-				type: "card.updated.member.added" as const,
+				type: 'card.updated.member.added' as const,
 				cardId: card.id,
 				workspaceMemberId: member.id,
 				createdBy: userId,
@@ -684,11 +684,11 @@ export const cardRouter = createTRPCRouter({
 	byId: publicProcedure
 		.meta({
 			openapi: {
-				summary: "Get a card by public ID",
-				method: "GET",
-				path: "/cards/{cardPublicId}",
-				description: "Retrieves a card by its public ID",
-				tags: ["Cards"],
+				summary: 'Get a card by public ID',
+				method: 'GET',
+				path: '/cards/{cardPublicId}',
+				description: 'Retrieves a card by its public ID',
+				tags: ['Cards'],
 			},
 		})
 		.input(z.object({ cardPublicId: z.string().min(12) }))
@@ -702,23 +702,23 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
-			if (card.workspaceVisibility === "private") {
+			if (card.workspaceVisibility === 'private') {
 				const userId = ctx.user?.id;
 
 				if (!userId)
 					throw new TRPCError({
 						message: `User not authenticated`,
-						code: "UNAUTHORIZED",
+						code: 'UNAUTHORIZED',
 					});
 
 				await assertPermission(
 					ctx.db,
 					userId,
 					card.workspaceId,
-					"card:view",
+					'card:view',
 				);
 			}
 
@@ -730,7 +730,7 @@ export const cardRouter = createTRPCRouter({
 			if (!result)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			// Generate URLs for all attachments
@@ -791,12 +791,12 @@ export const cardRouter = createTRPCRouter({
 	getActivities: publicProcedure
 		.meta({
 			openapi: {
-				summary: "Get paginated card activities",
-				method: "GET",
-				path: "/cards/{cardPublicId}/activities",
+				summary: 'Get paginated card activities',
+				method: 'GET',
+				path: '/cards/{cardPublicId}/activities',
 				description:
-					"Retrieves paginated activities for a card with merged frequent changes",
-				tags: ["Cards"],
+					'Retrieves paginated activities for a card with merged frequent changes',
+				tags: ['Cards'],
 			},
 		})
 		.input(
@@ -822,23 +822,23 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
-			if (card.workspaceVisibility === "private") {
+			if (card.workspaceVisibility === 'private') {
 				const userId = ctx.user?.id;
 
 				if (!userId)
 					throw new TRPCError({
 						message: `User not authenticated`,
-						code: "UNAUTHORIZED",
+						code: 'UNAUTHORIZED',
 					});
 
 				await assertPermission(
 					ctx.db,
 					userId,
 					card.workspaceId,
-					"card:view",
+					'card:view',
 				);
 			}
 
@@ -897,11 +897,11 @@ export const cardRouter = createTRPCRouter({
 	update: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Update a card",
-				method: "PUT",
-				path: "/cards/{cardPublicId}",
-				description: "Updates a card by its public ID",
-				tags: ["Cards"],
+				summary: 'Update a card',
+				method: 'PUT',
+				path: '/cards/{cardPublicId}',
+				description: 'Updates a card by its public ID',
+				tags: ['Cards'],
 				protect: true,
 			},
 		})
@@ -927,7 +927,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
@@ -938,14 +938,14 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanEdit(
 				ctx.db,
 				userId,
 				card.workspaceId,
-				"card:edit",
+				'card:edit',
 				card.createdBy,
 			);
 
@@ -974,7 +974,7 @@ export const cardRouter = createTRPCRouter({
 				if (!newList)
 					throw new TRPCError({
 						message: `List with public ID ${input.listPublicId} not found`,
-						code: "NOT_FOUND",
+						code: 'NOT_FOUND',
 					});
 
 				newListId = newList.id;
@@ -983,7 +983,7 @@ export const cardRouter = createTRPCRouter({
 			if (!existingCard) {
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 			}
 
@@ -1034,14 +1034,14 @@ export const cardRouter = createTRPCRouter({
 			if (!result)
 				throw new TRPCError({
 					message: `Failed to update card`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			const activities = [];
 
 			if (input.title && existingCard.title !== input.title) {
 				activities.push({
-					type: "card.updated.title" as const,
+					type: 'card.updated.title' as const,
 					cardId: result.id,
 					createdBy: userId,
 					fromTitle: existingCard.title,
@@ -1054,7 +1054,7 @@ export const cardRouter = createTRPCRouter({
 				existingCard.description !== input.description
 			) {
 				activities.push({
-					type: "card.updated.description" as const,
+					type: 'card.updated.description' as const,
 					cardId: result.id,
 					createdBy: userId,
 					fromDescription: existingCard.description ?? undefined,
@@ -1067,7 +1067,7 @@ export const cardRouter = createTRPCRouter({
 					commentHtml: input.description,
 					commenterUserId: userId,
 				}).catch((error) => {
-					console.error("Failed to send mention emails:", error);
+					console.error('Failed to send mention emails:', error);
 				});
 			}
 
@@ -1076,16 +1076,16 @@ export const cardRouter = createTRPCRouter({
 				previousDueDate?.getTime() !== input.dueDate?.getTime()
 			) {
 				let activityType:
-					| "card.updated.dueDate.added"
-					| "card.updated.dueDate.updated"
-					| "card.updated.dueDate.removed";
+					| 'card.updated.dueDate.added'
+					| 'card.updated.dueDate.updated'
+					| 'card.updated.dueDate.removed';
 
 				if (!previousDueDate) {
-					activityType = "card.updated.dueDate.added";
+					activityType = 'card.updated.dueDate.added';
 				} else if (!input.dueDate) {
-					activityType = "card.updated.dueDate.removed";
+					activityType = 'card.updated.dueDate.removed';
 				} else {
-					activityType = "card.updated.dueDate.updated";
+					activityType = 'card.updated.dueDate.updated';
 				}
 
 				activities.push({
@@ -1099,7 +1099,7 @@ export const cardRouter = createTRPCRouter({
 
 			if (newListId && existingCard.listId !== newListId) {
 				activities.push({
-					type: "card.updated.list" as const,
+					type: 'card.updated.list' as const,
 					cardId: result.id,
 					createdBy: userId,
 					fromListId: existingCard.listId,
@@ -1162,7 +1162,7 @@ export const cardRouter = createTRPCRouter({
 				ctx.db,
 				card.workspaceId,
 				createCardWebhookPayload(
-					movedToNewList ? "card.moved" : "card.updated",
+					movedToNewList ? 'card.moved' : 'card.updated',
 					{
 						id: String(result.id),
 						publicId: result.publicId,
@@ -1185,7 +1185,7 @@ export const cardRouter = createTRPCRouter({
 					},
 				),
 			).catch((error) => {
-				console.error("Webhook delivery failed:", error);
+				console.error('Webhook delivery failed:', error);
 			});
 
 			return result;
@@ -1193,11 +1193,11 @@ export const cardRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Delete a card",
-				method: "DELETE",
-				path: "/cards/{cardPublicId}",
-				description: "Deletes a card by its public ID",
-				tags: ["Cards"],
+				summary: 'Delete a card',
+				method: 'DELETE',
+				path: '/cards/{cardPublicId}',
+				description: 'Deletes a card by its public ID',
+				tags: ['Cards'],
 				protect: true,
 			},
 		})
@@ -1213,7 +1213,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const card = await cardRepo.getWorkspaceAndCardIdByCardPublicId(
@@ -1224,14 +1224,14 @@ export const cardRouter = createTRPCRouter({
 			if (!card)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanDelete(
 				ctx.db,
 				userId,
 				card.workspaceId,
-				"card:delete",
+				'card:delete',
 				card.createdBy,
 			);
 
@@ -1250,7 +1250,7 @@ export const cardRouter = createTRPCRouter({
 			});
 
 			await cardActivityRepo.create(ctx.db, {
-				type: "card.archived",
+				type: 'card.archived',
 				cardId: card.id,
 				createdBy: userId,
 			});
@@ -1261,7 +1261,7 @@ export const cardRouter = createTRPCRouter({
 					ctx.db,
 					card.workspaceId,
 					createCardWebhookPayload(
-						"card.deleted",
+						'card.deleted',
 						{
 							id: String(fullCard.id),
 							publicId: fullCard.publicId,
@@ -1280,7 +1280,7 @@ export const cardRouter = createTRPCRouter({
 						},
 					),
 				).catch((error) => {
-					console.error("Webhook delivery failed:", error);
+					console.error('Webhook delivery failed:', error);
 				});
 			}
 
@@ -1289,12 +1289,12 @@ export const cardRouter = createTRPCRouter({
 	duplicate: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Duplicate a card",
-				method: "POST",
-				path: "/cards/{cardPublicId}/duplicate",
+				summary: 'Duplicate a card',
+				method: 'POST',
+				path: '/cards/{cardPublicId}/duplicate',
 				description:
-					"Duplicates a card to a target list with optional options",
-				tags: ["Cards"],
+					'Duplicates a card to a target list with optional options',
+				tags: ['Cards'],
 				protect: true,
 			},
 		})
@@ -1320,7 +1320,7 @@ export const cardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const sourceCardMeta =
@@ -1332,14 +1332,14 @@ export const cardRouter = createTRPCRouter({
 			if (!sourceCardMeta)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				sourceCardMeta.workspaceId,
-				"card:create",
+				'card:create',
 			);
 
 			const targetList =
@@ -1351,13 +1351,13 @@ export const cardRouter = createTRPCRouter({
 			if (!targetList)
 				throw new TRPCError({
 					message: `List with public ID ${input.listPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			if (targetList.workspaceId !== sourceCardMeta.workspaceId)
 				throw new TRPCError({
 					message: `Target list must be in the same workspace`,
-					code: "BAD_REQUEST",
+					code: 'BAD_REQUEST',
 				});
 
 			const sourceCard = await cardRepo.getWithListAndMembersByPublicId(
@@ -1368,16 +1368,16 @@ export const cardRouter = createTRPCRouter({
 			if (!sourceCard)
 				throw new TRPCError({
 					message: `Card with public ID ${input.cardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			const newCard = await cardRepo.create(ctx.db, {
 				title: input.title ?? sourceCard.title,
-				description: sourceCard.description ?? "",
+				description: sourceCard.description ?? '',
 				createdBy: userId,
 				listId: targetList.id,
 				workspaceId: targetList.workspaceId,
-				position: "end",
+				position: 'end',
 				dueDate: sourceCard.dueDate ?? null,
 				borderColor:
 					(sourceCard as { borderColor?: string | null })
@@ -1408,7 +1408,7 @@ export const cardRouter = createTRPCRouter({
 						labelsInsert,
 					);
 					const cardActivitesInsert = labels.map((cardLabel) => ({
-						type: "card.updated.label.added" as const,
+						type: 'card.updated.label.added' as const,
 						cardId: newCard.id,
 						labelId: cardLabel.id,
 						createdBy: userId,
@@ -1438,7 +1438,7 @@ export const cardRouter = createTRPCRouter({
 						membersInsert,
 					);
 					const cardActivitesInsert = members.map((member) => ({
-						type: "card.updated.member.added" as const,
+						type: 'card.updated.member.added' as const,
 						cardId: newCard.id,
 						workspaceMemberId: member.id,
 						createdBy: userId,
@@ -1469,7 +1469,7 @@ export const cardRouter = createTRPCRouter({
 						}
 					}
 					await cardActivityRepo.create(ctx.db, {
-						type: "card.updated.checklist.added",
+						type: 'card.updated.checklist.added',
 						cardId: newCard.id,
 						toTitle: newChecklist.name,
 						createdBy: userId,

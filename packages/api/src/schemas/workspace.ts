@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // ─── workspace.all ───────────────────────────────────────────
 export const workspaceListItemSchema = z.object({
@@ -8,7 +8,7 @@ export const workspaceListItemSchema = z.object({
 		name: z.string(),
 		description: z.string().nullable(),
 		slug: z.string(),
-		plan: z.enum(["free", "team", "pro", "enterprise"]),
+		plan: z.enum(['free', 'team', 'pro', 'enterprise']),
 		weekStartDay: z.number().nullable(),
 		cardPrefix: z.string(),
 		deletedAt: z.date().nullable(),
@@ -73,7 +73,7 @@ export const workspaceCreateResponseSchema = z.object({
 	name: z.string(),
 	slug: z.string(),
 	description: z.string().nullable(),
-	plan: z.enum(["free", "team", "pro", "enterprise"]),
+	plan: z.enum(['free', 'team', 'pro', 'enterprise']),
 	cardPrefix: z.string(),
 });
 
@@ -83,7 +83,7 @@ export const workspaceUpdateResponseSchema = z.object({
 	name: z.string(),
 	slug: z.string(),
 	description: z.string().nullable(),
-	plan: z.enum(["free", "team", "pro", "enterprise"]),
+	plan: z.enum(['free', 'team', 'pro', 'enterprise']),
 	showEmailsToMembers: z.boolean().nullable(),
 	weekStartDay: z.number().nullable(),
 });

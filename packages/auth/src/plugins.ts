@@ -1,21 +1,21 @@
-import { stripe } from "@better-auth/stripe";
-import { apiKey, genericOAuth } from "better-auth/plugins";
-import { magicLink } from "better-auth/plugins/magic-link";
+import { stripe } from '@better-auth/stripe';
+import { apiKey, genericOAuth } from 'better-auth/plugins';
+import { magicLink } from 'better-auth/plugins/magic-link';
 
-import type { dbClient } from "@kan/db/client";
-import * as memberRepo from "@kan/db/repository/member.repo";
-import * as subscriptionRepo from "@kan/db/repository/subscription.repo";
-import * as userRepo from "@kan/db/repository/user.repo";
-import * as workspaceRepo from "@kan/db/repository/workspace.repo";
-import { sendEmail } from "@kan/email";
-import { createLogger } from "@kan/logger";
-import { generateUID } from "@kan/shared/utils";
-import { createStripeClient } from "@kan/stripe";
+import type { dbClient } from '@kan/db/client';
+import * as memberRepo from '@kan/db/repository/member.repo';
+import * as subscriptionRepo from '@kan/db/repository/subscription.repo';
+import * as userRepo from '@kan/db/repository/user.repo';
+import * as workspaceRepo from '@kan/db/repository/workspace.repo';
+import { sendEmail } from '@kan/email';
+import { createLogger } from '@kan/logger';
+import { generateUID } from '@kan/shared/utils';
+import { createStripeClient } from '@kan/stripe';
 
-import { socialProvidersPlugin } from "./providers";
-import { triggerWorkflow } from "./utils";
+import { socialProvidersPlugin } from './providers';
+import { triggerWorkflow } from './utils';
 
-const log = createLogger("auth");
+const log = createLogger('auth');
 
 const requiredEnv = (key: string): string => {
 	const value = process.env[key];
@@ -57,7 +57,7 @@ async function cancelWorkspaceAccess(
 			? memberRepo.pauseMembersExcept(db, workspace.id, preserveUserId)
 			: memberRepo.pauseAllMembers(db, workspace.id),
 		workspaceRepo.update(db, workspacePublicId, {
-			plan: "free",
+			plan: 'free',
 			slug: newSlug,
 		}),
 	]);
@@ -66,31 +66,31 @@ async function cancelWorkspaceAccess(
 export function createPlugins(db: dbClient) {
 	return [
 		socialProvidersPlugin(),
-		...(process.env.NEXT_PUBLIC_KAN_ENV === "cloud"
+		...(process.env.NEXT_PUBLIC_KAN_ENV === 'cloud'
 			? [
 					stripe({
 						stripeClient: createStripeClient(),
 						stripeWebhookSecret: requiredEnv(
-							"STRIPE_WEBHOOK_SECRET",
+							'STRIPE_WEBHOOK_SECRET',
 						),
 						createCustomerOnSignUp: true,
 						subscription: {
 							enabled: true,
 							plans: [
 								{
-									name: "team",
+									name: 'team',
 									priceId: requiredEnv(
-										"STRIPE_TEAM_PLAN_MONTHLY_PRICE_ID",
+										'STRIPE_TEAM_PLAN_MONTHLY_PRICE_ID',
 									),
 									annualDiscountPriceId: requiredEnv(
-										"STRIPE_TEAM_PLAN_YEARLY_PRICE_ID",
+										'STRIPE_TEAM_PLAN_YEARLY_PRICE_ID',
 									),
 									freeTrial: {
 										days: 14,
 										onTrialStart: async (subscription) => {
 											await triggerWorkflow(
 												db,
-												"trial-start",
+												'trial-start',
 												subscription,
 											);
 										},
@@ -99,7 +99,7 @@ export function createPlugins(db: dbClient) {
 										}) => {
 											await triggerWorkflow(
 												db,
-												"trial-end",
+												'trial-end',
 												subscription,
 											);
 										},
@@ -108,26 +108,26 @@ export function createPlugins(db: dbClient) {
 										) => {
 											await triggerWorkflow(
 												db,
-												"trial-expired",
+												'trial-expired',
 												subscription,
 											);
 										},
 									},
 								},
 								{
-									name: "pro",
+									name: 'pro',
 									priceId: requiredEnv(
-										"STRIPE_PRO_PLAN_MONTHLY_PRICE_ID",
+										'STRIPE_PRO_PLAN_MONTHLY_PRICE_ID',
 									),
 									annualDiscountPriceId: requiredEnv(
-										"STRIPE_PRO_PLAN_YEARLY_PRICE_ID",
+										'STRIPE_PRO_PLAN_YEARLY_PRICE_ID',
 									),
 									freeTrial: {
 										days: 14,
 										onTrialStart: async (subscription) => {
 											await triggerWorkflow(
 												db,
-												"trial-start",
+												'trial-start',
 												subscription,
 											);
 										},
@@ -136,7 +136,7 @@ export function createPlugins(db: dbClient) {
 										}) => {
 											await triggerWorkflow(
 												db,
-												"trial-end",
+												'trial-end',
 												subscription,
 											);
 										},
@@ -145,7 +145,7 @@ export function createPlugins(db: dbClient) {
 										) => {
 											await triggerWorkflow(
 												db,
-												"trial-expired",
+												'trial-expired',
 												subscription,
 											);
 										},
@@ -184,7 +184,7 @@ export function createPlugins(db: dbClient) {
 								stripeSubscription,
 							}) => {
 								// Set unlimited seats to true for pro plans
-								if (subscription.plan === "pro") {
+								if (subscription.plan === 'pro') {
 									await subscriptionRepo.updateByStripeSubscriptionId(
 										db,
 										stripeSubscription.id,
@@ -197,7 +197,7 @@ export function createPlugins(db: dbClient) {
 											subscriptionId:
 												stripeSubscription.id,
 										},
-										"Pro subscription activated with unlimited seats",
+										'Pro subscription activated with unlimited seats',
 									);
 
 									const workspace =
@@ -220,7 +220,7 @@ export function createPlugins(db: dbClient) {
 							}) => {
 								await triggerWorkflow(
 									db,
-									"subscription-canceled",
+									'subscription-canceled',
 									subscription,
 									cancellationDetails,
 								);
@@ -234,7 +234,7 @@ export function createPlugins(db: dbClient) {
 							onSubscriptionUpdate: async ({ subscription }) => {
 								await triggerWorkflow(
 									db,
-									"subscription-updated",
+									'subscription-updated',
 									subscription,
 								);
 							},
@@ -249,11 +249,11 @@ export function createPlugins(db: dbClient) {
 					return null;
 				}
 
-				const authorization = ctx.headers.get("authorization");
-				if (authorization?.startsWith("Bearer ")) {
+				const authorization = ctx.headers.get('authorization');
+				if (authorization?.startsWith('Bearer ')) {
 					return authorization.slice(7);
 				}
-				return ctx.headers.get("x-api-key") ?? null;
+				return ctx.headers.get('x-api-key') ?? null;
 			},
 			rateLimit: {
 				enabled: true,
@@ -267,24 +267,24 @@ export function createPlugins(db: dbClient) {
 				try {
 					const decodedUrl = decodeURIComponent(url);
 					log.info(
-						{ email, isInvite: decodedUrl.includes("type=invite") },
-						"Sending magic link",
+						{ email, isInvite: decodedUrl.includes('type=invite') },
+						'Sending magic link',
 					);
-					if (decodedUrl.includes("type=invite")) {
-						let inviterName = "";
-						let workspaceName = "";
+					if (decodedUrl.includes('type=invite')) {
+						let inviterName = '';
+						let workspaceName = '';
 
 						try {
 							const urlObj = new URL(url);
 							const callbackUrl =
-								urlObj.searchParams.get("callbackURL");
+								urlObj.searchParams.get('callbackURL');
 							if (callbackUrl) {
 								const callbackParams = new URL(
 									callbackUrl,
 									process.env.NEXT_PUBLIC_BASE_URL,
 								).searchParams;
 								const memberPublicId =
-									callbackParams.get("memberPublicId");
+									callbackParams.get('memberPublicId');
 
 								if (memberPublicId) {
 									const member =
@@ -308,14 +308,14 @@ export function createPlugins(db: dbClient) {
 										if (workspace)
 											workspaceName = workspace.name;
 										if (inviter)
-											inviterName = inviter.name ?? "";
+											inviterName = inviter.name ?? '';
 									}
 								}
 							}
 						} catch (error) {
 							log.error(
 								{ err: error },
-								"Failed to fetch invite details",
+								'Failed to fetch invite details',
 							);
 						}
 
@@ -323,8 +323,8 @@ export function createPlugins(db: dbClient) {
 							email,
 							workspaceName
 								? `Invitation to join the workspace ${workspaceName}`
-								: "Invitation to join workspace",
-							"JOIN_WORKSPACE",
+								: 'Invitation to join workspace',
+							'JOIN_WORKSPACE',
 							{
 								magicLoginUrl: url,
 								inviterName,
@@ -336,10 +336,10 @@ export function createPlugins(db: dbClient) {
 							email,
 							process.env
 								.NEXT_PUBLIC_WHITE_LABEL_HIDE_POWERED_BY ===
-								"true"
-								? "Sign in to your account"
-								: "Sign in to Kan",
-							"MAGIC_LINK",
+								'true'
+								? 'Sign in to your account'
+								: 'Sign in to Kan',
+							'MAGIC_LINK',
 							{
 								magicLoginUrl: url,
 							},
@@ -348,7 +348,7 @@ export function createPlugins(db: dbClient) {
 				} catch (error) {
 					log.error(
 						{ err: error, email },
-						"Error sending magic link",
+						'Error sending magic link',
 					);
 				}
 			},
@@ -361,11 +361,11 @@ export function createPlugins(db: dbClient) {
 					genericOAuth({
 						config: [
 							{
-								providerId: "oidc",
+								providerId: 'oidc',
 								clientId: process.env.OIDC_CLIENT_ID,
 								clientSecret: process.env.OIDC_CLIENT_SECRET,
 								discoveryUrl: process.env.OIDC_DISCOVERY_URL,
-								scopes: ["openid", "email", "profile"],
+								scopes: ['openid', 'email', 'profile'],
 								pkce: true,
 								mapProfileToUser: (profile: {
 									name?: string;
@@ -381,7 +381,7 @@ export function createPlugins(db: dbClient) {
 								}) => {
 									log.debug(
 										{ profile },
-										"OIDC profile received",
+										'OIDC profile received',
 									);
 
 									const name =
@@ -394,7 +394,7 @@ export function createPlugins(db: dbClient) {
 											: (profile.given_name ??
 												profile.family_name)) ??
 										profile.sub ??
-										"";
+										'';
 
 									return {
 										email: profile.email,

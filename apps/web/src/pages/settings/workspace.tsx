@@ -1,16 +1,16 @@
-import type { NextPageWithLayout } from "~/pages/_app";
-import { getDashboardLayout } from "~/components/Dashboard";
-import Popup from "~/components/Popup";
-import { SettingsLayout } from "~/components/SettingsLayout";
-import WorkspaceSettings from "~/views/settings/WorkspaceSettings";
+import type { NextPageWithLayout } from '~/pages/_app';
+import { getDashboardLayout } from '~/components/Dashboard';
+import Popup from '~/components/Popup';
+import { SettingsLayout } from '~/components/SettingsLayout';
+import WorkspaceSettings from '~/views/settings/WorkspaceSettings';
 
 const WorkspaceSettingsPage: NextPageWithLayout = () => {
-  return (
-    <SettingsLayout currentTab="workspace">
-      <WorkspaceSettings />
-      <Popup />
-    </SettingsLayout>
-  );
+	return (
+		<SettingsLayout currentTab="workspace">
+			<WorkspaceSettings />
+			<Popup />
+		</SettingsLayout>
+	);
 };
 
 WorkspaceSettingsPage.getLayout = (page) => getDashboardLayout(page);

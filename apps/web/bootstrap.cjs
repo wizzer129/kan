@@ -12,33 +12,33 @@
  * 2. Start the Next.js standalone server.
  */
 
-const { writeFileSync, existsSync, mkdirSync } = require("fs");
-const path = require("path");
+const { writeFileSync, existsSync, mkdirSync } = require('fs');
+const path = require('path');
 
 // ---------------------------------------------------------------------------
 // 1. Inject runtime NEXT_PUBLIC_* env vars into __ENV.js
 // ---------------------------------------------------------------------------
 
-const publicDir = path.join(__dirname, "apps", "web", "public");
+const publicDir = path.join(__dirname, 'apps', 'web', 'public');
 
 if (!existsSync(publicDir)) {
-  mkdirSync(publicDir, { recursive: true });
+	mkdirSync(publicDir, { recursive: true });
 }
 
 const envVars = {};
 for (const [key, value] of Object.entries(process.env)) {
-  if (key.startsWith("NEXT_PUBLIC_")) {
-    envVars[key] = value;
-  }
+	if (key.startsWith('NEXT_PUBLIC_')) {
+		envVars[key] = value;
+	}
 }
 
 writeFileSync(
-  path.join(publicDir, "__ENV.js"),
-  `self.__ENV = ${JSON.stringify(envVars)};`,
+	path.join(publicDir, '__ENV.js'),
+	`self.__ENV = ${JSON.stringify(envVars)};`,
 );
 
 // ---------------------------------------------------------------------------
 // 2. Start the Next.js standalone server
 // ---------------------------------------------------------------------------
 
-require("./apps/web/server.js");
+require('./apps/web/server.js');

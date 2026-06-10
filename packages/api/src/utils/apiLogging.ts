@@ -1,17 +1,17 @@
-import { randomUUID } from "crypto";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { randomUUID } from 'crypto';
+import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { createLogger } from "@kan/logger";
+import { createLogger } from '@kan/logger';
 
-import { createNextApiContext } from "../trpc";
+import { createNextApiContext } from '../trpc';
 
-const log = createLogger("api");
+const log = createLogger('api');
 
-const isCloud = process.env.NEXT_PUBLIC_KAN_ENV === "cloud";
+const isCloud = process.env.NEXT_PUBLIC_KAN_ENV === 'cloud';
 
 function isNonEmptyObject(value: unknown): value is Record<string, unknown> {
 	return (
-		typeof value === "object" &&
+		typeof value === 'object' &&
 		value !== null &&
 		Object.keys(value).length > 0
 	);
@@ -26,9 +26,9 @@ export function withApiLogging(
 	return async (req: NextApiRequest, res: NextApiResponse) => {
 		const start = Date.now();
 		const requestId = randomUUID();
-		const route = req.url?.split("?")[0] ?? "unknown";
+		const route = req.url?.split('?')[0] ?? 'unknown';
 		const input: {
-			query?: NextApiRequest["query"];
+			query?: NextApiRequest['query'];
 			body?: Record<string, unknown>;
 		} = {};
 
@@ -64,7 +64,7 @@ export function withApiLogging(
 			handlerError = err;
 			statusCode = 500;
 			if (!res.headersSent) {
-				res.status(500).json({ error: "Internal server error" });
+				res.status(500).json({ error: 'Internal server error' });
 			}
 		}
 
@@ -72,7 +72,7 @@ export function withApiLogging(
 		const meta = {
 			requestId,
 			procedure: route,
-			transport: "rest",
+			transport: 'rest',
 			duration,
 			userId,
 			...(isCloud && email && { email }),
@@ -85,9 +85,9 @@ export function withApiLogging(
 		};
 
 		if (statusCode < 400) {
-			log.info(meta, "API OK");
+			log.info(meta, 'API OK');
 		} else {
-			log.error(meta, "API error");
+			log.error(meta, 'API error');
 		}
 	};
 }

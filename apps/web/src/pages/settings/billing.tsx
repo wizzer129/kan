@@ -1,16 +1,16 @@
-import type { NextPageWithLayout } from "~/pages/_app";
-import { getDashboardLayout } from "~/components/Dashboard";
-import Popup from "~/components/Popup";
-import { SettingsLayout } from "~/components/SettingsLayout";
-import BillingSettings from "~/views/settings/BillingSettings";
+import type { NextPageWithLayout } from '~/pages/_app';
+import { getDashboardLayout } from '~/components/Dashboard';
+import Popup from '~/components/Popup';
+import { SettingsLayout } from '~/components/SettingsLayout';
+import BillingSettings from '~/views/settings/BillingSettings';
 
 const BillingSettingsPage: NextPageWithLayout = () => {
-  return (
-    <SettingsLayout currentTab="billing">
-      <BillingSettings />
-      <Popup />
-    </SettingsLayout>
-  );
+	return (
+		<SettingsLayout currentTab="billing">
+			<BillingSettings />
+			<Popup />
+		</SettingsLayout>
+	);
 };
 
 BillingSettingsPage.getLayout = (page) => getDashboardLayout(page);

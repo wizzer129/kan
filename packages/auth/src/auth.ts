@@ -1,26 +1,26 @@
-import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { env } from "next-runtime-env";
+import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { env } from 'next-runtime-env';
 
-import type { dbClient } from "@kan/db/client";
-import * as schema from "@kan/db/schema";
-import { sendEmail } from "@kan/email";
+import type { dbClient } from '@kan/db/client';
+import * as schema from '@kan/db/schema';
+import { sendEmail } from '@kan/email';
 
-import { createDatabaseHooks, createMiddlewareHooks } from "./hooks";
-import { createPlugins } from "./plugins";
-import { configuredProviders } from "./providers";
+import { createDatabaseHooks, createMiddlewareHooks } from './hooks';
+import { createPlugins } from './plugins';
+import { configuredProviders } from './providers';
 
 export const initAuth = (db: dbClient) => {
-	const baseURL = env("NEXT_PUBLIC_BASE_URL") ?? env("BETTER_AUTH_URL");
+	const baseURL = env('NEXT_PUBLIC_BASE_URL') ?? env('BETTER_AUTH_URL');
 	const trustedOrigins =
-		env("BETTER_AUTH_TRUSTED_ORIGINS")?.split(",").filter(Boolean) ?? [];
+		env('BETTER_AUTH_TRUSTED_ORIGINS')?.split(',').filter(Boolean) ?? [];
 
 	return betterAuth({
-		secret: env("BETTER_AUTH_SECRET"),
+		secret: env('BETTER_AUTH_SECRET'),
 		baseURL,
 		trustedOrigins: [...(baseURL ? [baseURL] : []), ...trustedOrigins],
 		database: drizzleAdapter(db, {
-			provider: "pg",
+			provider: 'pg',
 			schema: {
 				...schema,
 				user: schema.users,
@@ -33,7 +33,7 @@ export const initAuth = (db: dbClient) => {
 		},
 		emailAndPassword: {
 			enabled:
-				env("NEXT_PUBLIC_ALLOW_CREDENTIALS")?.toLowerCase() === "true",
+				env('NEXT_PUBLIC_ALLOW_CREDENTIALS')?.toLowerCase() === 'true',
 			// Sign-up restriction is handled by the user.create.before database
 			// hook which checks for pending invitations, allowing invited users
 			// to register even when public sign-up is disabled.
@@ -41,8 +41,8 @@ export const initAuth = (db: dbClient) => {
 			sendResetPassword: async (data) => {
 				await sendEmail(
 					data.user.email,
-					"Reset Password",
-					"RESET_PASSWORD",
+					'Reset Password',
+					'RESET_PASSWORD',
 					{
 						resetPasswordUrl: data.url,
 						resetPasswordToken: data.token,
@@ -57,7 +57,7 @@ export const initAuth = (db: dbClient) => {
 			},
 			additionalFields: {
 				stripeCustomerId: {
-					type: "string",
+					type: 'string',
 					required: false,
 					defaultValue: null,
 					input: false,
@@ -68,7 +68,7 @@ export const initAuth = (db: dbClient) => {
 		databaseHooks: createDatabaseHooks(db),
 		hooks: createMiddlewareHooks(db),
 		advanced: {
-			cookiePrefix: "kan",
+			cookiePrefix: 'kan',
 			database: {
 				generateId: false,
 			},

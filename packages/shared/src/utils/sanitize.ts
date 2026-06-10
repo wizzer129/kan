@@ -3,4 +3,4 @@
  * Use this on any user-supplied text field before storing or displaying.
  */
 export const stripHtml = (value: string): string =>
-  value.replace(/<[^>]*>/g, "").trim();
+	value.replace(/<[^>]*>/g, '').trim();

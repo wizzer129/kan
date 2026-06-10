@@ -1,4 +1,4 @@
-export const name = "email";
+export const name = 'email';
 
-export { sendEmail } from "./sendEmail";
-export { notificationClient } from "./notificationClient";
+export { sendEmail } from './sendEmail';
+export { notificationClient } from './notificationClient';

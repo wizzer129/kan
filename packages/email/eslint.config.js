@@ -1,9 +1,9 @@
-import baseConfig from "@kan/eslint-config/base";
+import baseConfig from '@kan/eslint-config/base';
 
 /** @type {import('typescript-eslint').Config} */
 export default [
-  {
-    ignores: ["dist/**", ".react-email/**"],
-  },
-  ...baseConfig,
+	{
+		ignores: ['dist/**', '.react-email/**'],
+	},
+	...baseConfig,
 ];

@@ -1,17 +1,17 @@
-import { Axiom } from "@axiomhq/js";
-import pino from "pino";
+import { Axiom } from '@axiomhq/js';
+import pino from 'pino';
 
-const isDev = process.env.NODE_ENV !== "production";
-const isCloud = process.env.NEXT_PUBLIC_KAN_ENV === "cloud";
-const FALLBACK_LEVEL = isDev ? "debug" : "info";
+const isDev = process.env.NODE_ENV !== 'production';
+const isCloud = process.env.NEXT_PUBLIC_KAN_ENV === 'cloud';
+const FALLBACK_LEVEL = isDev ? 'debug' : 'info';
 const VALID_LEVELS = new Set([
-	"trace",
-	"debug",
-	"info",
-	"warn",
-	"error",
-	"fatal",
-	"silent",
+	'trace',
+	'debug',
+	'info',
+	'warn',
+	'error',
+	'fatal',
+	'silent',
 ]);
 
 function resolveLogLevel(value: string | undefined): string {
@@ -59,11 +59,11 @@ export const logger = useAxiom
 			level,
 			...(isDev && {
 				transport: {
-					target: "pino-pretty",
+					target: 'pino-pretty',
 					options: {
 						colorize: true,
-						ignore: "pid,hostname",
-						translateTime: "HH:MM:ss",
+						ignore: 'pid,hostname',
+						translateTime: 'HH:MM:ss',
 					},
 				},
 			}),

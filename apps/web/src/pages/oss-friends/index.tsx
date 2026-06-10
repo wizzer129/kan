@@ -1,5 +1,5 @@
-import OSSFriendsView from "~/views/oss-friends";
+import OSSFriendsView from '~/views/oss-friends';
 
 export default function OSSFriends() {
-  return <OSSFriendsView />;
+	return <OSSFriendsView />;
 }

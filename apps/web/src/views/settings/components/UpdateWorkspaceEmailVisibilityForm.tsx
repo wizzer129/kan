@@ -1,58 +1,58 @@
-import { t } from "@lingui/core/macro";
-import { useEffect, useState } from "react";
+import { t } from '@lingui/core/macro';
+import { useEffect, useState } from 'react';
 
-import Toggle from "~/components/Toggle";
-import { api } from "~/utils/api";
+import Toggle from '~/components/Toggle';
+import { api } from '~/utils/api';
 
 export default function UpdateWorkspaceEmailVisibilityForm({
-  workspacePublicId,
-  showEmailsToMembers,
-  disabled = false,
+	workspacePublicId,
+	showEmailsToMembers,
+	disabled = false,
 }: {
-  workspacePublicId: string;
-  showEmailsToMembers: boolean;
-  disabled?: boolean;
+	workspacePublicId: string;
+	showEmailsToMembers: boolean;
+	disabled?: boolean;
 }) {
-  const utils = api.useUtils();
-  const [isChecked, setIsChecked] = useState(showEmailsToMembers);
+	const utils = api.useUtils();
+	const [isChecked, setIsChecked] = useState(showEmailsToMembers);
 
-  useEffect(() => {
-    setIsChecked(showEmailsToMembers);
-  }, [showEmailsToMembers]);
+	useEffect(() => {
+		setIsChecked(showEmailsToMembers);
+	}, [showEmailsToMembers]);
 
-  const updateWorkspace = api.workspace.update.useMutation({
-    onSuccess: () => {
-      if (workspacePublicId && workspacePublicId.length >= 12) {
-        void utils.workspace.byId.invalidate({
-          workspacePublicId,
-        });
-      }
-    },
-  });
+	const updateWorkspace = api.workspace.update.useMutation({
+		onSuccess: () => {
+			if (workspacePublicId && workspacePublicId.length >= 12) {
+				void utils.workspace.byId.invalidate({
+					workspacePublicId,
+				});
+			}
+		},
+	});
 
-  const handleToggle = () => {
-    if (disabled) return;
-    const newValue = !isChecked;
-    setIsChecked(newValue);
-    updateWorkspace.mutate({
-      workspacePublicId,
-      showEmailsToMembers: newValue,
-    });
-  };
+	const handleToggle = () => {
+		if (disabled) return;
+		const newValue = !isChecked;
+		setIsChecked(newValue);
+		updateWorkspace.mutate({
+			workspacePublicId,
+			showEmailsToMembers: newValue,
+		});
+	};
 
-  return (
-    <div className="mb-8 flex items-center justify-between">
-      <div className="flex-1">
-        <p className="text-sm text-neutral-500 dark:text-dark-900">
-          {t`Allow workspace members to see each other's email addresses`}
-        </p>
-      </div>
-      <Toggle
-        isChecked={isChecked}
-        onChange={handleToggle}
-        label=""
-        disabled={disabled || updateWorkspace.isPending}
-      />
-    </div>
-  );
+	return (
+		<div className="mb-8 flex items-center justify-between">
+			<div className="flex-1">
+				<p className="text-sm text-neutral-500 dark:text-dark-900">
+					{t`Allow workspace members to see each other's email addresses`}
+				</p>
+			</div>
+			<Toggle
+				isChecked={isChecked}
+				onChange={handleToggle}
+				label=""
+				disabled={disabled || updateWorkspace.isPending}
+			/>
+		</div>
+	);
 }

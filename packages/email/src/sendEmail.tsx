@@ -1,17 +1,17 @@
-import type { ComponentType } from "react";
-import { render } from "@react-email/render";
-import nodemailer from "nodemailer";
+import type { ComponentType } from 'react';
+import { render } from '@react-email/render';
+import nodemailer from 'nodemailer';
 
-import { createLogger } from "@kan/logger";
+import { createLogger } from '@kan/logger';
 
-import JoinWorkspaceTemplate from "./templates/join-workspace";
-import MagicLinkTemplate from "./templates/magic-link";
-import MentionTemplate from "./templates/mention";
-import ResetPasswordTemplate from "./templates/reset-password";
+import JoinWorkspaceTemplate from './templates/join-workspace';
+import MagicLinkTemplate from './templates/magic-link';
+import MentionTemplate from './templates/mention';
+import ResetPasswordTemplate from './templates/reset-password';
 
-const log = createLogger("email");
+const log = createLogger('email');
 
-type Templates = "MAGIC_LINK" | "JOIN_WORKSPACE" | "RESET_PASSWORD" | "MENTION";
+type Templates = 'MAGIC_LINK' | 'JOIN_WORKSPACE' | 'RESET_PASSWORD' | 'MENTION';
 
 const emailTemplates = {
 	MAGIC_LINK: MagicLinkTemplate,
@@ -26,13 +26,13 @@ const transporter = nodemailer.createTransport({
 	secure:
 		process.env.SMTP_SECURE === undefined
 			? true
-			: process.env.SMTP_SECURE.toLowerCase() === "true",
+			: process.env.SMTP_SECURE.toLowerCase() === 'true',
 	tls: {
 		// do not fail on invalid certs
 		rejectUnauthorized:
 			process.env.SMTP_REJECT_UNAUTHORIZED === undefined
 				? true
-				: process.env.SMTP_REJECT_UNAUTHORIZED.toLowerCase() === "true",
+				: process.env.SMTP_REJECT_UNAUTHORIZED.toLowerCase() === 'true',
 	},
 	...(process.env.SMTP_USER &&
 		process.env.SMTP_PASSWORD && {
@@ -49,7 +49,7 @@ export const sendEmail = async (
 	template: Templates,
 	data: Record<string, string>,
 ) => {
-	log.info({ to, subject, template }, "Sending email");
+	log.info({ to, subject, template }, 'Sending email');
 	try {
 		const EmailTemplate = emailTemplates[template] as ComponentType<
 			Record<string, string>
@@ -74,13 +74,13 @@ export const sendEmail = async (
 
 		log.info(
 			{ to, subject, template, messageId: response.messageId },
-			"Email sent",
+			'Email sent',
 		);
 		return response;
 	} catch (error) {
 		log.error(
 			{ err: error, to, from: process.env.EMAIL_FROM, subject, template },
-			"Email sending failed",
+			'Email sending failed',
 		);
 		throw error;
 	}

@@ -1,28 +1,28 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
-import * as boardRepo from "@kan/db/repository/board.repo";
-import * as cardRepo from "@kan/db/repository/card.repo";
-import * as activityRepo from "@kan/db/repository/cardActivity.repo";
-import * as listRepo from "@kan/db/repository/list.repo";
+import * as boardRepo from '@kan/db/repository/board.repo';
+import * as cardRepo from '@kan/db/repository/card.repo';
+import * as activityRepo from '@kan/db/repository/cardActivity.repo';
+import * as listRepo from '@kan/db/repository/list.repo';
 
-import { listCreateResponseSchema, listUpdateResponseSchema } from "../schemas";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { listCreateResponseSchema, listUpdateResponseSchema } from '../schemas';
+import { createTRPCRouter, protectedProcedure } from '../trpc';
 import {
 	assertCanDelete,
 	assertCanEdit,
 	assertPermission,
-} from "../utils/permissions";
+} from '../utils/permissions';
 
 export const listRouter = createTRPCRouter({
 	create: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Create a list",
-				method: "POST",
-				path: "/lists",
-				description: "Creates a new list for a given board",
-				tags: ["Lists"],
+				summary: 'Create a list',
+				method: 'POST',
+				path: '/lists',
+				description: 'Creates a new list for a given board',
+				tags: ['Lists'],
 				protect: true,
 			},
 		})
@@ -39,7 +39,7 @@ export const listRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const board = await boardRepo.getWorkspaceAndBoardIdByBoardPublicId(
@@ -50,14 +50,14 @@ export const listRouter = createTRPCRouter({
 			if (!board)
 				throw new TRPCError({
 					message: `Board with public ID ${input.boardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				board.workspaceId,
-				"list:create",
+				'list:create',
 			);
 
 			const result = await listRepo.create(ctx.db, {
@@ -71,11 +71,11 @@ export const listRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Delete a list",
-				method: "DELETE",
-				path: "/lists/{listPublicId}",
-				description: "Deletes a list by its public ID",
-				tags: ["Lists"],
+				summary: 'Delete a list',
+				method: 'DELETE',
+				path: '/lists/{listPublicId}',
+				description: 'Deletes a list by its public ID',
+				tags: ['Lists'],
 				protect: true,
 			},
 		})
@@ -91,7 +91,7 @@ export const listRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const list = await listRepo.getWorkspaceAndListIdByListPublicId(
@@ -102,14 +102,14 @@ export const listRouter = createTRPCRouter({
 			if (!list)
 				throw new TRPCError({
 					message: `List with public ID ${input.listPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanDelete(
 				ctx.db,
 				userId,
 				list.workspaceId,
-				"list:delete",
+				'list:delete',
 				list.createdBy,
 			);
 
@@ -130,11 +130,11 @@ export const listRouter = createTRPCRouter({
 			if (!Array.isArray(deletedCards))
 				throw new TRPCError({
 					message: `Failed to delete cards`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			const activities = deletedCards.map((card) => ({
-				type: "card.archived" as const,
+				type: 'card.archived' as const,
 				createdBy: userId,
 				cardId: card.id,
 			}));
@@ -147,11 +147,11 @@ export const listRouter = createTRPCRouter({
 	update: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Update a list",
-				method: "PUT",
-				path: "/lists/{listPublicId}",
-				description: "Updates a list by its public ID",
-				tags: ["Lists"],
+				summary: 'Update a list',
+				method: 'PUT',
+				path: '/lists/{listPublicId}',
+				description: 'Updates a list by its public ID',
+				tags: ['Lists'],
 				protect: true,
 			},
 		})
@@ -169,7 +169,7 @@ export const listRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const list = await listRepo.getWorkspaceAndListIdByListPublicId(
@@ -180,14 +180,14 @@ export const listRouter = createTRPCRouter({
 			if (!list)
 				throw new TRPCError({
 					message: `List with public ID ${input.listPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanEdit(
 				ctx.db,
 				userId,
 				list.workspaceId,
-				"list:edit",
+				'list:edit',
 				list.createdBy,
 			);
 
@@ -211,7 +211,7 @@ export const listRouter = createTRPCRouter({
 			if (!result)
 				throw new TRPCError({
 					message: `Failed to update list`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			return result;

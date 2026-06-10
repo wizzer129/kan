@@ -1,5 +1,5 @@
-import PricingView from "~/views/pricing";
+import PricingView from '~/views/pricing';
 
 export default function Pricing() {
-  return <PricingView />;
+	return <PricingView />;
 }

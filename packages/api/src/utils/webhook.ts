@@ -1,12 +1,12 @@
-import crypto from "crypto";
-import { z } from "zod";
+import crypto from 'crypto';
+import { z } from 'zod';
 
-import type { dbClient } from "@kan/db/client";
-import type { WebhookEvent } from "@kan/db/schema";
-import * as webhookRepo from "@kan/db/repository/webhook.repo";
-import { createLogger } from "@kan/logger";
+import type { dbClient } from '@kan/db/client';
+import type { WebhookEvent } from '@kan/db/schema';
+import * as webhookRepo from '@kan/db/repository/webhook.repo';
+import { createLogger } from '@kan/logger';
 
-const log = createLogger("webhook");
+const log = createLogger('webhook');
 
 export type WebhookEventType = WebhookEvent;
 
@@ -40,7 +40,7 @@ export interface WebhookPayload {
 }
 
 function generateSignature(payload: string, secret: string): string {
-	return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+	return crypto.createHmac('sha256', secret).update(payload).digest('hex');
 }
 
 /**
@@ -55,42 +55,42 @@ export const webhookUrlSchema = z
 	.refine(
 		(url) => {
 			try {
-				return new URL(url).protocol === "https:";
+				return new URL(url).protocol === 'https:';
 			} catch {
 				return false;
 			}
 		},
-		{ message: "Only HTTPS URLs are allowed" },
+		{ message: 'Only HTTPS URLs are allowed' },
 	)
 	.refine(
 		(url) => {
 			try {
 				const hostname = new URL(url).hostname.toLowerCase();
 				return !(
-					hostname === "localhost" ||
-					hostname === "127.0.0.1" ||
-					hostname === "::1" ||
-					hostname === "0.0.0.0"
+					hostname === 'localhost' ||
+					hostname === '127.0.0.1' ||
+					hostname === '::1' ||
+					hostname === '0.0.0.0'
 				);
 			} catch {
 				return false;
 			}
 		},
-		{ message: "Localhost URLs are not allowed" },
+		{ message: 'Localhost URLs are not allowed' },
 	)
 	.refine(
 		(url) => {
 			try {
 				const hostname = new URL(url).hostname.toLowerCase();
 				return !(
-					hostname === "169.254.169.254" ||
-					hostname === "metadata.google.internal"
+					hostname === '169.254.169.254' ||
+					hostname === 'metadata.google.internal'
 				);
 			} catch {
 				return false;
 			}
 		},
-		{ message: "Cloud metadata endpoints are not allowed" },
+		{ message: 'Cloud metadata endpoints are not allowed' },
 	)
 	.refine(
 		(url) => {
@@ -113,7 +113,7 @@ export const webhookUrlSchema = z
 				return false;
 			}
 		},
-		{ message: "Private IP addresses are not allowed" },
+		{ message: 'Private IP addresses are not allowed' },
 	);
 
 /**
@@ -135,13 +135,13 @@ export async function sendWebhookToUrl(
 
 	const body = JSON.stringify(payload);
 	const headers: Record<string, string> = {
-		"Content-Type": "application/json",
-		"X-Webhook-Event": payload.event,
-		"X-Webhook-Timestamp": payload.timestamp,
+		'Content-Type': 'application/json',
+		'X-Webhook-Event': payload.event,
+		'X-Webhook-Timestamp': payload.timestamp,
 	};
 
 	if (secret) {
-		headers["X-Webhook-Signature"] = generateSignature(body, secret);
+		headers['X-Webhook-Signature'] = generateSignature(body, secret);
 	}
 
 	const controller = new AbortController();
@@ -149,7 +149,7 @@ export async function sendWebhookToUrl(
 
 	try {
 		const response = await fetch(url, {
-			method: "POST",
+			method: 'POST',
 			headers,
 			body,
 			signal: controller.signal,
@@ -169,13 +169,13 @@ export async function sendWebhookToUrl(
 	} catch (error) {
 		clearTimeout(timeoutId);
 
-		if (error instanceof Error && error.name === "AbortError") {
-			return { success: false, error: "Request timed out" };
+		if (error instanceof Error && error.name === 'AbortError') {
+			return { success: false, error: 'Request timed out' };
 		}
 
 		return {
 			success: false,
-			error: error instanceof Error ? error.message : "Unknown error",
+			error: error instanceof Error ? error.message : 'Unknown error',
 		};
 	}
 }
@@ -214,7 +214,7 @@ export async function sendWebhooksForWorkspace(
 							error: result.error,
 							statusCode: result.statusCode,
 						},
-						"Webhook delivery failed",
+						'Webhook delivery failed',
 					);
 				} else {
 					log.info(
@@ -223,7 +223,7 @@ export async function sendWebhooksForWorkspace(
 							event: payload.event,
 							statusCode: result.statusCode,
 						},
-						"Webhook delivered",
+						'Webhook delivered',
 					);
 				}
 			}),
@@ -234,7 +234,7 @@ export async function sendWebhooksForWorkspace(
 	} catch (error) {
 		log.error(
 			{ err: error, workspaceId },
-			"Failed to send webhooks for workspace",
+			'Failed to send webhooks for workspace',
 		);
 	}
 }

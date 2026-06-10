@@ -1,36 +1,36 @@
-import { t } from "@lingui/core/macro";
-import { Trans } from "@lingui/react/macro";
-import { format } from "date-fns";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { t } from '@lingui/core/macro';
+import { Trans } from '@lingui/react/macro';
+import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
 	HiOutlineBarsArrowDown,
 	HiOutlineBarsArrowUp,
 	HiXMark,
-} from "react-icons/hi2";
+} from 'react-icons/hi2';
 
-import type { NewCardInput } from "@kan/api/types";
-import { generateUID } from "@kan/shared/utils";
+import type { NewCardInput } from '@kan/api/types';
+import { generateUID } from '@kan/shared/utils';
 
-import type { WorkspaceMember } from "~/components/Editor";
-import Avatar from "~/components/Avatar";
-import Button from "~/components/Button";
-import CheckboxDropdown from "~/components/CheckboxDropdown";
-import DateSelector from "~/components/DateSelector";
-import Editor from "~/components/Editor";
-import Input from "~/components/Input";
-import LabelIcon from "~/components/LabelIcon";
-import Toggle from "~/components/Toggle";
-import { useModalFormState } from "~/hooks/useModalFormState";
-import { useModal } from "~/providers/modal";
-import { usePopup } from "~/providers/popup";
-import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
-import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
+import type { WorkspaceMember } from '~/components/Editor';
+import Avatar from '~/components/Avatar';
+import Button from '~/components/Button';
+import CheckboxDropdown from '~/components/CheckboxDropdown';
+import DateSelector from '~/components/DateSelector';
+import Editor from '~/components/Editor';
+import Input from '~/components/Input';
+import LabelIcon from '~/components/LabelIcon';
+import Toggle from '~/components/Toggle';
+import { useModalFormState } from '~/hooks/useModalFormState';
+import { useModal } from '~/providers/modal';
+import { usePopup } from '~/providers/popup';
+import { useWorkspace } from '~/providers/workspace';
+import { api } from '~/utils/api';
+import { formatMemberDisplayName, getAvatarUrl } from '~/utils/helpers';
 import {
 	CardBorderColorPicker,
 	DEFAULT_CARD_BORDER_COLOR,
-} from "./CardBorderColorPicker";
+} from './CardBorderColorPicker';
 
 type NewCardFormInput = NewCardInput & {
 	isCreateAnotherEnabled: boolean;
@@ -66,15 +66,15 @@ export function NewCardForm({
 
 	// persists the form values
 	const { formState, saveFormState } = useModalFormState<NewCardFormInput>({
-		modalType: "NEW_CARD",
+		modalType: 'NEW_CARD',
 		initialValues: {
-			title: "",
-			description: "",
+			title: '',
+			description: '',
 			listPublicId,
 			labelPublicIds: [],
 			memberPublicIds: [],
 			isCreateAnotherEnabled: false,
-			position: "start",
+			position: 'start',
 			dueDate: null,
 			borderColor: DEFAULT_CARD_BORDER_COLOR,
 		},
@@ -86,14 +86,14 @@ export function NewCardForm({
 			values: formState,
 		});
 
-	const labelPublicIds = watch("labelPublicIds") || [];
-	const memberPublicIds = watch("memberPublicIds") || [];
-	const isCreateAnotherEnabled = watch("isCreateAnotherEnabled");
-	const position = watch("position");
-	const title = watch("title");
-	const description = watch("description");
-	const dueDate = watch("dueDate");
-	const borderColor = watch("borderColor");
+	const labelPublicIds = watch('labelPublicIds') || [];
+	const memberPublicIds = watch('memberPublicIds') || [];
+	const isCreateAnotherEnabled = watch('isCreateAnotherEnabled');
+	const position = watch('position');
+	const title = watch('title');
+	const description = watch('description');
+	const dueDate = watch('dueDate');
+	const borderColor = watch('borderColor');
 	const [isDateSelectorOpen, setIsDateSelectorOpen] = useState(false);
 
 	// saving form state whenever form values change
@@ -112,7 +112,7 @@ export function NewCardForm({
 	useEffect(() => {
 		const newLabelId = modalStates.NEW_LABEL_CREATED;
 		if (newLabelId !== undefined && !labelPublicIds.includes(newLabelId)) {
-			setValue("labelPublicIds", [...labelPublicIds, newLabelId]);
+			setValue('labelPublicIds', [...labelPublicIds, newLabelId]);
 		}
 	}, [modalStates, labelPublicIds]);
 
@@ -125,7 +125,7 @@ export function NewCardForm({
 			const newLabelId = modalStates.NEW_LABEL_CREATED;
 
 			if (newLabelId && availableLabelIds.includes(newLabelId)) {
-				clearModalState("NEW_LABEL_CREATED");
+				clearModalState('NEW_LABEL_CREATED');
 			}
 
 			const validLabelIds = labelPublicIds.filter(
@@ -133,7 +133,7 @@ export function NewCardForm({
 			);
 
 			if (validLabelIds.length !== labelPublicIds.length) {
-				setValue("labelPublicIds", validLabelIds);
+				setValue('labelPublicIds', validLabelIds);
 			}
 		}
 	}, [boardData?.labels, labelPublicIds, modalStates.NEW_LABEL_CREATED]);
@@ -153,7 +153,7 @@ export function NewCardForm({
 							publicId: `PLACEHOLDER_${generateUID()}`,
 							title: args.title,
 							listId: 2,
-							description: "",
+							description: '',
 							dueDate: args.dueDate ?? null,
 							borderColor: args.borderColor ?? null,
 							cardNumber: null,
@@ -174,11 +174,11 @@ export function NewCardForm({
 										...member,
 										deletedAt: null,
 									})) ?? [],
-							index: position === "start" ? 0 : list.cards.length,
+							index: position === 'start' ? 0 : list.cards.length,
 						};
 
 						const updatedCards =
-							position === "start"
+							position === 'start'
 								? [newCard, ...list.cards]
 								: [...list.cards, newCard];
 						return { ...list, cards: updatedCards };
@@ -196,22 +196,22 @@ export function NewCardForm({
 			showPopup({
 				header: t`Unable to create card`,
 				message: error.data?.zodError?.fieldErrors.title?.[0]
-					? `${error.data.zodError.fieldErrors.title[0].replace("String", "Title")}`
+					? `${error.data.zodError.fieldErrors.title[0].replace('String', 'Title')}`
 					: t`Please try again later, or contact customer support.`,
-				icon: "error",
+				icon: 'error',
 			});
 		},
 		onSuccess: async () => {
-			const isCreateAnotherEnabled = watch("isCreateAnotherEnabled");
+			const isCreateAnotherEnabled = watch('isCreateAnotherEnabled');
 			if (!isCreateAnotherEnabled) {
 				// close modal (state will auto-clear due to resetOnClose: true)
 				closeModal();
 			} else {
 				// reset form for creating another card
 				const newFormState = {
-					title: "",
-					description: "",
-					listPublicId: watch("listPublicId"),
+					title: '',
+					description: '',
+					listPublicId: watch('listPublicId'),
 					labelPublicIds: [],
 					memberPublicIds: [],
 					isCreateAnotherEnabled,
@@ -228,7 +228,7 @@ export function NewCardForm({
 
 	useEffect(() => {
 		const titleElement: HTMLElement | null =
-			document.querySelector<HTMLElement>("#title");
+			document.querySelector<HTMLElement>('#title');
 		if (titleElement) titleElement.focus();
 	}, []);
 
@@ -244,7 +244,7 @@ export function NewCardForm({
 		boardData?.lists.map((list) => ({
 			key: list.publicId,
 			value: list.name,
-			selected: list.publicId === watch("listPublicId"),
+			selected: list.publicId === watch('listPublicId'),
 		})) ?? [];
 
 	const formattedMembers =
@@ -258,7 +258,7 @@ export function NewCardForm({
 			leftIcon: (
 				<Avatar
 					size="xs"
-					name={member.user?.name ?? ""}
+					name={member.user?.name ?? ''}
 					imageUrl={
 						member.user?.image
 							? getAvatarUrl(member.user.image)
@@ -283,32 +283,32 @@ export function NewCardForm({
 	};
 
 	const handleToggleCreateAnother = (): void => {
-		setValue("isCreateAnotherEnabled", !isCreateAnotherEnabled);
+		setValue('isCreateAnotherEnabled', !isCreateAnotherEnabled);
 	};
 
 	const handleSelectList = (listPublicId: string): void => {
-		setValue("listPublicId", listPublicId);
+		setValue('listPublicId', listPublicId);
 	};
 
 	const handleSelectMembers = (memberPublicId: string): void => {
 		const currentIndex = memberPublicIds.indexOf(memberPublicId);
 		if (currentIndex === -1) {
-			setValue("memberPublicIds", [...memberPublicIds, memberPublicId]);
+			setValue('memberPublicIds', [...memberPublicIds, memberPublicId]);
 		} else {
 			const newMemberPublicIds = [...memberPublicIds];
 			newMemberPublicIds.splice(currentIndex, 1);
-			setValue("memberPublicIds", newMemberPublicIds);
+			setValue('memberPublicIds', newMemberPublicIds);
 		}
 	};
 
 	const handleSelectLabels = (labelPublicId: string): void => {
 		const currentIndex = labelPublicIds.indexOf(labelPublicId);
 		if (currentIndex === -1) {
-			setValue("labelPublicIds", [...labelPublicIds, labelPublicId]);
+			setValue('labelPublicIds', [...labelPublicIds, labelPublicId]);
 		} else {
 			const newLabelPublicIds = [...labelPublicIds];
 			newLabelPublicIds.splice(currentIndex, 1);
-			setValue("labelPublicIds", newLabelPublicIds);
+			setValue('labelPublicIds', newLabelPublicIds);
 		}
 	};
 
@@ -340,9 +340,9 @@ export function NewCardForm({
 					<Input
 						id="title"
 						placeholder={t`Card title`}
-						{...register("title")}
+						{...register('title')}
 						onKeyDown={async (e) => {
-							if (e.key === "Enter") {
+							if (e.key === 'Enter') {
 								e.preventDefault();
 								await handleSubmit(onSubmit)();
 							}
@@ -354,7 +354,7 @@ export function NewCardForm({
 						<Editor
 							content={description}
 							onChange={(value) => {
-								setValue("description", value);
+								setValue('description', value);
 								saveFormState({
 									...formState,
 									description: value,
@@ -387,7 +387,7 @@ export function NewCardForm({
 							value={borderColor ?? null}
 							onChange={(value) =>
 								setValue(
-									"borderColor",
+									'borderColor',
 									value ?? DEFAULT_CARD_BORDER_COLOR,
 								)
 							}
@@ -434,7 +434,7 @@ export function NewCardForm({
 														>
 															<span className="text-[8px] font-medium leading-none text-white">
 																{member?.value
-																	.split(" ")
+																	.split(' ')
 																	.map(
 																		(
 																			namePart,
@@ -445,7 +445,7 @@ export function NewCardForm({
 																				)
 																				.toUpperCase(),
 																	)
-																	.join("")}
+																	.join('')}
 															</span>
 														</span>
 													);
@@ -464,9 +464,9 @@ export function NewCardForm({
 								handleSelectLabels(item.key)
 							}
 							handleEdit={(labelPublicId) =>
-								openModal("EDIT_LABEL", labelPublicId)
+								openModal('EDIT_LABEL', labelPublicId)
 							}
-							handleCreate={() => openModal("NEW_LABEL")}
+							handleCreate={() => openModal('NEW_LABEL')}
 							createNewItemLabel={t`Create new label`}
 						>
 							<div className="flex h-full w-full items-center rounded-[5px] border-[1px] border-light-600 bg-light-200 px-2 py-1 text-left text-xs text-light-800 hover:bg-light-300 dark:border-dark-600 dark:bg-dark-400 dark:text-dark-1000 dark:hover:bg-dark-500">
@@ -477,8 +477,8 @@ export function NewCardForm({
 										<div
 											className={
 												labelPublicIds.length > 1
-													? "flex -space-x-[2px] overflow-hidden"
-													: "flex items-center"
+													? 'flex -space-x-[2px] overflow-hidden'
+													: 'flex items-center'
 											}
 										>
 											{labelPublicIds.map(
@@ -498,7 +498,7 @@ export function NewCardForm({
 															<svg
 																fill={
 																	label?.colourCode ??
-																	"#3730a3"
+																	'#3730a3'
 																}
 																className="h-2 w-2"
 																viewBox="0 0 6 6"
@@ -542,7 +542,7 @@ export function NewCardForm({
 							className="flex h-full w-full items-center rounded-[5px] border-[1px] border-light-600 bg-light-200 px-2 py-1 text-left text-xs text-light-800 hover:bg-light-300 dark:border-dark-600 dark:bg-dark-400 dark:text-dark-1000 dark:hover:bg-dark-500"
 						>
 							{dueDate ? (
-								<span>{format(dueDate, "MMM d, yyyy")}</span>
+								<span>{format(dueDate, 'MMM d, yyyy')}</span>
 							) : (
 								<>{t`Due date`}</>
 							)}
@@ -565,7 +565,7 @@ export function NewCardForm({
 									<DateSelector
 										selectedDate={dueDate ?? undefined}
 										onDateSelect={(date) => {
-											setValue("dueDate", date ?? null);
+											setValue('dueDate', date ?? null);
 											setIsDateSelectorOpen(false);
 										}}
 										weekStartsOn={workspace.weekStartDay}
@@ -578,13 +578,13 @@ export function NewCardForm({
 						onClick={(e) => {
 							e.preventDefault();
 							setValue(
-								"position",
-								position === "start" ? "end" : "start",
+								'position',
+								position === 'start' ? 'end' : 'start',
 							);
 						}}
 						className="flex h-auto items-center rounded-[5px] border-[1px] border-light-600 bg-light-200 px-1.5 py-1 text-left text-xs text-light-800 hover:bg-light-300 focus-visible:outline-none dark:border-dark-600 dark:bg-dark-400 dark:text-dark-1000 dark:hover:bg-dark-500"
 					>
-						{position === "start" ? (
+						{position === 'start' ? (
 							<HiOutlineBarsArrowUp size={14} />
 						) : (
 							<HiOutlineBarsArrowDown size={14} />

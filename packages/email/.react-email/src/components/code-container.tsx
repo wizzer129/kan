@@ -29,7 +29,9 @@ export const CodeContainer: React.FC<Readonly<CodeContainerProps>> = ({
 	const [isCopied, setIsCopied] = React.useState(false);
 
 	const renderDownloadIcon = () => {
-		const value = markups.filter((markup) => markup.language === activeLang);
+		const value = markups.filter(
+			(markup) => markup.language === activeLang,
+		);
 		const file = new File([value[0].content], `email.${value[0].language}`);
 		const url = URL.createObjectURL(file);
 

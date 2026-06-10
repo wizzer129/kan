@@ -1,5 +1,5 @@
-import { SignJWT } from "jose";
-import { env } from "next-runtime-env";
+import { SignJWT } from 'jose';
+import { env } from 'next-runtime-env';
 
 const encoder = new TextEncoder();
 
@@ -13,20 +13,20 @@ const encoder = new TextEncoder();
  *
  */
 export async function createEmailUnsubscribeLink(
-  userId: string,
+	userId: string,
 ): Promise<string | null> {
-  const baseUrl = env("NEXT_PUBLIC_BASE_URL");
-  const secret = process.env.EMAIL_UNSUBSCRIBE_SECRET;
+	const baseUrl = env('NEXT_PUBLIC_BASE_URL');
+	const secret = process.env.EMAIL_UNSUBSCRIBE_SECRET;
 
-  if (!baseUrl || !secret) {
-    // Environment not configured for unsubscribe links.
-    return null;
-  }
+	if (!baseUrl || !secret) {
+		// Environment not configured for unsubscribe links.
+		return null;
+	}
 
-  const token = await new SignJWT({ subscriberId: userId })
-    .setProtectedHeader({ alg: "HS256" })
-    // No expiration on purpose; unsubscribe links are long‑lived.
-    .sign(encoder.encode(secret));
+	const token = await new SignJWT({ subscriberId: userId })
+		.setProtectedHeader({ alg: 'HS256' })
+		// No expiration on purpose; unsubscribe links are long‑lived.
+		.sign(encoder.encode(secret));
 
-  return `${baseUrl}/unsubscribe?token=${encodeURIComponent(token)}`;
+	return `${baseUrl}/unsubscribe?token=${encodeURIComponent(token)}`;
 }

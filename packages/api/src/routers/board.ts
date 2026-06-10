@@ -1,19 +1,19 @@
-import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { TRPCError } from '@trpc/server';
+import { z } from 'zod';
 
-import * as boardRepo from "@kan/db/repository/board.repo";
-import * as cardRepo from "@kan/db/repository/card.repo";
-import * as activityRepo from "@kan/db/repository/cardActivity.repo";
-import * as labelRepo from "@kan/db/repository/label.repo";
-import * as listRepo from "@kan/db/repository/list.repo";
-import * as workspaceRepo from "@kan/db/repository/workspace.repo";
-import { colours } from "@kan/shared/constants";
+import * as boardRepo from '@kan/db/repository/board.repo';
+import * as cardRepo from '@kan/db/repository/card.repo';
+import * as activityRepo from '@kan/db/repository/cardActivity.repo';
+import * as labelRepo from '@kan/db/repository/label.repo';
+import * as listRepo from '@kan/db/repository/list.repo';
+import * as workspaceRepo from '@kan/db/repository/workspace.repo';
+import { colours } from '@kan/shared/constants';
 import {
 	convertDueDateFiltersToRanges,
 	generateAvatarUrl,
 	generateSlug,
 	generateUID,
-} from "@kan/shared/utils";
+} from '@kan/shared/utils';
 
 import {
 	boardBySlugSchema,
@@ -21,30 +21,30 @@ import {
 	boardDetailSchema,
 	boardListItemSchema,
 	boardUpdateResponseSchema,
-} from "../schemas";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
+} from '../schemas';
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
 import {
 	assertCanDelete,
 	assertCanEdit,
 	assertPermission,
-} from "../utils/permissions";
+} from '../utils/permissions';
 
 export const boardRouter = createTRPCRouter({
 	all: protectedProcedure
 		.meta({
 			openapi: {
-				method: "GET",
-				path: "/workspaces/{workspacePublicId}/boards",
-				summary: "Get all boards",
-				description: "Retrieves all boards for a given workspace",
-				tags: ["Boards"],
+				method: 'GET',
+				path: '/workspaces/{workspacePublicId}/boards',
+				summary: 'Get all boards',
+				description: 'Retrieves all boards for a given workspace',
+				tags: ['Boards'],
 				protect: true,
 			},
 		})
 		.input(
 			z.object({
 				workspacePublicId: z.string().min(12),
-				type: z.enum(["regular", "template"]).optional(),
+				type: z.enum(['regular', 'template']).optional(),
 				archived: z.boolean().optional(),
 			}),
 		)
@@ -55,7 +55,7 @@ export const boardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const workspace = await workspaceRepo.getByPublicId(
@@ -66,10 +66,10 @@ export const boardRouter = createTRPCRouter({
 			if (!workspace)
 				throw new TRPCError({
 					message: `Workspace with public ID ${input.workspacePublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
-			await assertPermission(ctx.db, userId, workspace.id, "board:view");
+			await assertPermission(ctx.db, userId, workspace.id, 'board:view');
 
 			const result = boardRepo.getAllByWorkspaceId(
 				ctx.db,
@@ -86,11 +86,11 @@ export const boardRouter = createTRPCRouter({
 	byId: protectedProcedure
 		.meta({
 			openapi: {
-				method: "GET",
-				path: "/boards/{boardPublicId}",
-				summary: "Get board by public ID",
-				description: "Retrieves a board by its public ID",
-				tags: ["Boards"],
+				method: 'GET',
+				path: '/boards/{boardPublicId}',
+				summary: 'Get board by public ID',
+				description: 'Retrieves a board by its public ID',
+				tags: ['Boards'],
 				protect: true,
 			},
 		})
@@ -103,16 +103,16 @@ export const boardRouter = createTRPCRouter({
 				dueDateFilters: z
 					.array(
 						z.enum([
-							"overdue",
-							"today",
-							"tomorrow",
-							"next-week",
-							"next-month",
-							"no-due-date",
+							'overdue',
+							'today',
+							'tomorrow',
+							'next-week',
+							'next-month',
+							'no-due-date',
 						]),
 					)
 					.optional(),
-				type: z.enum(["regular", "template"]).optional(),
+				type: z.enum(['regular', 'template']).optional(),
 			}),
 		)
 		.output(boardDetailSchema)
@@ -122,7 +122,7 @@ export const boardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const board = await boardRepo.getWorkspaceAndBoardIdByBoardPublicId(
@@ -133,14 +133,14 @@ export const boardRouter = createTRPCRouter({
 			if (!board)
 				throw new TRPCError({
 					message: `Board with public ID ${input.boardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				board.workspaceId,
-				"board:view",
+				'board:view',
 			);
 
 			// Convert semantic string filters to date ranges expected by the repo
@@ -164,7 +164,7 @@ export const boardRouter = createTRPCRouter({
 			if (!result) {
 				throw new TRPCError({
 					message: `Board with public ID ${input.boardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 			}
 
@@ -227,12 +227,12 @@ export const boardRouter = createTRPCRouter({
 	bySlug: publicProcedure
 		.meta({
 			openapi: {
-				method: "GET",
-				path: "/workspaces/{workspaceSlug}/boards/{boardSlug}",
-				summary: "Get board by slug",
+				method: 'GET',
+				path: '/workspaces/{workspaceSlug}/boards/{boardSlug}',
+				summary: 'Get board by slug',
 				description:
-					"Retrieves a board by its slug within a specific workspace",
-				tags: ["Boards"],
+					'Retrieves a board by its slug within a specific workspace',
+				tags: ['Boards'],
 				protect: false,
 			},
 		})
@@ -254,12 +254,12 @@ export const boardRouter = createTRPCRouter({
 				dueDateFilters: z
 					.array(
 						z.enum([
-							"overdue",
-							"today",
-							"tomorrow",
-							"next-week",
-							"next-month",
-							"no-due-date",
+							'overdue',
+							'today',
+							'tomorrow',
+							'next-week',
+							'next-month',
+							'no-due-date',
 						]),
 					)
 					.optional(),
@@ -275,7 +275,7 @@ export const boardRouter = createTRPCRouter({
 			if (!workspace)
 				throw new TRPCError({
 					message: `Workspace with slug ${input.workspaceSlug} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			// Convert semantic string filters to date ranges expected by the repo
@@ -300,11 +300,11 @@ export const boardRouter = createTRPCRouter({
 	create: protectedProcedure
 		.meta({
 			openapi: {
-				method: "POST",
-				path: "/workspaces/{workspacePublicId}/boards",
-				summary: "Create board",
-				description: "Creates a new board for a given workspace",
-				tags: ["Boards"],
+				method: 'POST',
+				path: '/workspaces/{workspacePublicId}/boards',
+				summary: 'Create board',
+				description: 'Creates a new board for a given workspace',
+				tags: ['Boards'],
 				protect: true,
 			},
 		})
@@ -314,8 +314,18 @@ export const boardRouter = createTRPCRouter({
 				workspacePublicId: z.string().min(12),
 				lists: z.array(z.string().min(1)),
 				labels: z.array(z.string().min(1)),
-				type: z.enum(["regular", "template"]).optional(),
+				type: z.enum(['regular', 'template']).optional(),
 				sourceBoardPublicId: z.string().min(12).optional(),
+				backgroundColor: z
+					.string()
+					.regex(/^#(?:[0-9a-fA-F]{6})$/)
+					.nullable()
+					.optional(),
+				borderColor: z
+					.string()
+					.regex(/^#(?:[0-9a-fA-F]{6})$/)
+					.nullable()
+					.optional(),
 			}),
 		)
 		.output(boardCreateResponseSchema)
@@ -325,7 +335,7 @@ export const boardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const workspace = await workspaceRepo.getByPublicId(
@@ -336,14 +346,14 @@ export const boardRouter = createTRPCRouter({
 			if (!workspace)
 				throw new TRPCError({
 					message: `Workspace with public ID ${input.workspacePublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertPermission(
 				ctx.db,
 				userId,
 				workspace.id,
-				"board:create",
+				'board:create',
 			);
 
 			// If sourceBoardPublicId is provided, clone the source board
@@ -357,7 +367,7 @@ export const boardRouter = createTRPCRouter({
 				if (!sourceBoardInfo)
 					throw new TRPCError({
 						message: `Source board with public ID ${input.sourceBoardPublicId} not found`,
-						code: "NOT_FOUND",
+						code: 'NOT_FOUND',
 					});
 
 				// Get the full board data with the correct type
@@ -377,7 +387,7 @@ export const boardRouter = createTRPCRouter({
 				if (!sourceBoard)
 					throw new TRPCError({
 						message: `Source board with public ID ${input.sourceBoardPublicId} not found`,
-						code: "NOT_FOUND",
+						code: 'NOT_FOUND',
 					});
 
 				// Verify the source board belongs to the same workspace
@@ -389,7 +399,7 @@ export const boardRouter = createTRPCRouter({
 				if (!sourceWorkspace || sourceWorkspace.id !== workspace.id)
 					throw new TRPCError({
 						message: `Source board does not belong to this workspace`,
-						code: "FORBIDDEN",
+						code: 'FORBIDDEN',
 					});
 
 				let slug = generateSlug(input.name);
@@ -399,7 +409,7 @@ export const boardRouter = createTRPCRouter({
 					workspaceId: workspace.id,
 				});
 
-				if (!isSlugUnique || input.type === "template")
+				if (!isSlugUnique || input.type === 'template')
 					slug = `${slug}-${generateUID()}`;
 
 				const result = await boardRepo.createFromSnapshot(ctx.db, {
@@ -408,7 +418,7 @@ export const boardRouter = createTRPCRouter({
 					createdBy: userId,
 					slug,
 					name: input.name,
-					type: input.type ?? "regular",
+					type: input.type ?? 'regular',
 					sourceBoardId: sourceBoardInfo.id,
 				});
 
@@ -423,7 +433,7 @@ export const boardRouter = createTRPCRouter({
 				workspaceId: workspace.id,
 			});
 
-			if (!isSlugUnique || input.type === "template")
+			if (!isSlugUnique || input.type === 'template')
 				slug = `${slug}-${generateUID()}`;
 
 			const result = await boardRepo.create(ctx.db, {
@@ -433,12 +443,14 @@ export const boardRouter = createTRPCRouter({
 				createdBy: userId,
 				workspaceId: workspace.id,
 				type: input.type,
+				backgroundColor: input.backgroundColor,
+				borderColor: input.borderColor,
 			});
 
 			if (!result)
 				throw new TRPCError({
 					message: `Failed to create board`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			if (input.lists.length) {
@@ -460,7 +472,7 @@ export const boardRouter = createTRPCRouter({
 					boardId: result.id,
 					createdBy: userId,
 					colourCode:
-						colours[index % colours.length]?.code ?? "#0d9488",
+						colours[index % colours.length]?.code ?? '#0d9488',
 				}));
 
 				await labelRepo.bulkCreate(ctx.db, labelInputs);
@@ -471,11 +483,11 @@ export const boardRouter = createTRPCRouter({
 	update: protectedProcedure
 		.meta({
 			openapi: {
-				method: "PUT",
-				path: "/boards/{boardPublicId}",
-				summary: "Update board",
-				description: "Updates a board by its public ID",
-				tags: ["Boards"],
+				method: 'PUT',
+				path: '/boards/{boardPublicId}',
+				summary: 'Update board',
+				description: 'Updates a board by its public ID',
+				tags: ['Boards'],
 				protect: true,
 			},
 		})
@@ -489,9 +501,19 @@ export const boardRouter = createTRPCRouter({
 					.max(60)
 					.regex(/^(?![-]+$)[a-zA-Z0-9-]+$/)
 					.optional(),
-				visibility: z.enum(["public", "private"]).optional(),
+				visibility: z.enum(['public', 'private']).optional(),
 				favorite: z.boolean().optional(),
 				isArchived: z.boolean().optional(),
+				backgroundColor: z
+					.string()
+					.regex(/^#(?:[0-9a-fA-F]{6})$/)
+					.nullable()
+					.optional(),
+				borderColor: z
+					.string()
+					.regex(/^#(?:[0-9a-fA-F]{6})$/)
+					.nullable()
+					.optional(),
 			}),
 		)
 		.output(boardUpdateResponseSchema)
@@ -501,7 +523,7 @@ export const boardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const board = await boardRepo.getWorkspaceAndBoardIdByBoardPublicId(
@@ -512,14 +534,14 @@ export const boardRouter = createTRPCRouter({
 			if (!board)
 				throw new TRPCError({
 					message: `Board with public ID ${input.boardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanEdit(
 				ctx.db,
 				userId,
 				board.workspaceId,
-				"board:edit",
+				'board:edit',
 				board.createdBy ?? null,
 			);
 
@@ -541,7 +563,9 @@ export const boardRouter = createTRPCRouter({
 				input.name !== undefined ||
 				input.slug !== undefined ||
 				input.visibility !== undefined ||
-				input.isArchived !== undefined;
+				input.isArchived !== undefined ||
+				input.backgroundColor !== undefined ||
+				input.borderColor !== undefined;
 
 			if (!hasOtherUpdates) {
 				// Only favorite was updated, return success
@@ -559,7 +583,7 @@ export const boardRouter = createTRPCRouter({
 				if (!isBoardSlugAvailable) {
 					throw new TRPCError({
 						message: `Board slug ${input.slug} is not available`,
-						code: "BAD_REQUEST",
+						code: 'BAD_REQUEST',
 					});
 				}
 			}
@@ -570,12 +594,14 @@ export const boardRouter = createTRPCRouter({
 				boardPublicId: input.boardPublicId,
 				visibility: input.visibility,
 				isArchived: input.isArchived,
+				backgroundColor: input.backgroundColor,
+				borderColor: input.borderColor,
 			});
 
 			if (!result)
 				throw new TRPCError({
 					message: `Failed to update board`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			return result;
@@ -583,11 +609,11 @@ export const boardRouter = createTRPCRouter({
 	delete: protectedProcedure
 		.meta({
 			openapi: {
-				method: "DELETE",
-				path: "/boards/{boardPublicId}",
-				summary: "Delete board",
-				description: "Deletes a board by its public ID",
-				tags: ["Boards"],
+				method: 'DELETE',
+				path: '/boards/{boardPublicId}',
+				summary: 'Delete board',
+				description: 'Deletes a board by its public ID',
+				tags: ['Boards'],
 				protect: true,
 			},
 		})
@@ -603,7 +629,7 @@ export const boardRouter = createTRPCRouter({
 			if (!userId)
 				throw new TRPCError({
 					message: `User not authenticated`,
-					code: "UNAUTHORIZED",
+					code: 'UNAUTHORIZED',
 				});
 
 			const board = await boardRepo.getWithListIdsByPublicId(
@@ -614,14 +640,14 @@ export const boardRouter = createTRPCRouter({
 			if (!board)
 				throw new TRPCError({
 					message: `Board with public ID ${input.boardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			await assertCanDelete(
 				ctx.db,
 				userId,
 				board.workspaceId,
-				"board:delete",
+				'board:delete',
 				board.createdBy ?? null,
 			);
 
@@ -648,7 +674,7 @@ export const boardRouter = createTRPCRouter({
 				if (!Array.isArray(deletedLists)) {
 					throw new TRPCError({
 						message: `Failed to delete lists`,
-						code: "INTERNAL_SERVER_ERROR",
+						code: 'INTERNAL_SERVER_ERROR',
 					});
 				}
 
@@ -664,13 +690,13 @@ export const boardRouter = createTRPCRouter({
 				if (!Array.isArray(deletedCards)) {
 					throw new TRPCError({
 						message: `Failed to delete cards`,
-						code: "INTERNAL_SERVER_ERROR",
+						code: 'INTERNAL_SERVER_ERROR',
 					});
 				}
 
 				if (deletedCards.length) {
 					const activities = deletedCards.map((card) => ({
-						type: "card.archived" as const,
+						type: 'card.archived' as const,
 						createdBy: userId,
 						cardId: card.id,
 					}));
@@ -684,11 +710,11 @@ export const boardRouter = createTRPCRouter({
 	checkSlugAvailability: publicProcedure
 		.meta({
 			openapi: {
-				summary: "Check if a board slug is available",
-				method: "GET",
-				path: "/boards/{boardPublicId}/check-slug-availability",
-				description: "Checks if a board slug is available",
-				tags: ["Boards"],
+				summary: 'Check if a board slug is available',
+				method: 'GET',
+				path: '/boards/{boardPublicId}/check-slug-availability',
+				description: 'Checks if a board slug is available',
+				tags: ['Boards'],
 				protect: true,
 			},
 		})
@@ -716,7 +742,7 @@ export const boardRouter = createTRPCRouter({
 			if (!board)
 				throw new TRPCError({
 					message: `Board with public ID ${input.boardPublicId} not found`,
-					code: "NOT_FOUND",
+					code: 'NOT_FOUND',
 				});
 
 			const isBoardSlugAvailable = await boardRepo.isBoardSlugAvailable(

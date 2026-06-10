@@ -1,8 +1,8 @@
 ---
-title: "Introduction"
-description: "Overview and quick start to run Kan on your own infrastructure using Docker Compose."
-mode: "wide"
-tag: "NEW"
+title: 'Introduction'
+description: 'Overview and quick start to run Kan on your own infrastructure using Docker Compose.'
+mode: 'wide'
+tag: 'NEW'
 ---
 
 This guide introduces how to self-host Kan. It starts with the minimal Docker Compose setup (web + PostgreSQL) and points you to optional features like email and S3-based file storage.
@@ -10,20 +10,20 @@ This guide introduces how to self-host Kan. It starts with the minimal Docker Co
 ## What you’ll set up
 
 <CardGroup cols={2}>
-  <Card title="Kan" icon="globe" color="#0284c7" horizontal>
-    Next.js application served on port 3000.
-  </Card>
-  <Card title="PostgreSQL 15" icon="database" color="#65a30d" horizontal>
-    Primary database for Kan data.
-  </Card>
+	<Card title="Kan" icon="globe" color="#0284c7" horizontal>
+		Next.js application served on port 3000.
+	</Card>
+	<Card title="PostgreSQL 15" icon="database" color="#65a30d" horizontal>
+		Primary database for Kan data.
+	</Card>
 </CardGroup>
 
 <Note>
-  For file uploads (avatars), OAuth, and other advanced options, see the
-  Environment Variables section in the README and the dedicated [S3
-  guide](/guides/self-hosting/s3). The [full
-  compose](https://github.com/kanbn/kan/blob/main/docker-compose.yml) in the
-  repo includes a richer configuration via <code>.env</code>.
+	For file uploads (avatars), OAuth, and other advanced options, see the
+	Environment Variables section in the README and the dedicated [S3
+	guide](/guides/self-hosting/s3). The [full
+	compose](https://github.com/kanbn/kan/blob/main/docker-compose.yml) in the
+	repo includes a richer configuration via <code>.env</code>.
 </Note>
 
 ## Prerequisites

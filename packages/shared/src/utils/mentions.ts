@@ -5,18 +5,18 @@
  * @returns Array of unique mention public IDs
  */
 export function parseMentionsFromHTML(htmlContent: string): string[] {
-  if (!htmlContent) return [];
+	if (!htmlContent) return [];
 
-  // Match all mention spans with data-id attributes
-  const mentionRegex =
-    /<span[^>]*data-type="mention"[^>]*data-id="([^"]+)"[^>]*>/gi;
-  const matches = Array.from(htmlContent.matchAll(mentionRegex));
+	// Match all mention spans with data-id attributes
+	const mentionRegex =
+		/<span[^>]*data-type="mention"[^>]*data-id="([^"]+)"[^>]*>/gi;
+	const matches = Array.from(htmlContent.matchAll(mentionRegex));
 
-  // Extract unique mention IDs
-  const mentionIds = matches
-    .map((match) => match[1])
-    .filter((id): id is string => !!id && id.length >= 12);
+	// Extract unique mention IDs
+	const mentionIds = matches
+		.map((match) => match[1])
+		.filter((id): id is string => !!id && id.length >= 12);
 
-  // Return unique IDs
-  return Array.from(new Set(mentionIds));
+	// Return unique IDs
+	return Array.from(new Set(mentionIds));
 }

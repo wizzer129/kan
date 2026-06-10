@@ -1,5 +1,5 @@
-import PrivacyView from "~/views/privacy";
+import PrivacyView from '~/views/privacy';
 
 export default function Privacy() {
-  return <PrivacyView />;
+	return <PrivacyView />;
 }

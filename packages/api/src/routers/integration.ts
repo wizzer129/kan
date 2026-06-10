@@ -1,14 +1,14 @@
-import { TRPCError } from "@trpc/server";
-import { env } from "next-runtime-env";
-import { z } from "zod";
+import { TRPCError } from '@trpc/server';
+import { env } from 'next-runtime-env';
+import { z } from 'zod';
 
-import * as integrationsRepo from "@kan/db/repository/integration.repo";
+import * as integrationsRepo from '@kan/db/repository/integration.repo';
 
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { encryptToken } from "../utils/encryption";
+import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { encryptToken } from '../utils/encryption';
 
 export const urls = {
-	trello: "https://api.trello.com/1",
+	trello: 'https://api.trello.com/1',
 };
 
 export const apiKeys = {
@@ -24,8 +24,8 @@ export const integrationRouter = createTRPCRouter({
 
 			if (!user)
 				throw new TRPCError({
-					message: "User not authenticated",
-					code: "UNAUTHORIZED",
+					message: 'User not authenticated',
+					code: 'UNAUTHORIZED',
 				});
 
 			const encryptedToken = encryptToken(input.token);
@@ -34,7 +34,7 @@ export const integrationRouter = createTRPCRouter({
 			expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
 			await integrationsRepo.createOrUpdateProvider(ctx.db, {
-				provider: "github",
+				provider: 'github',
 				userId: user.id,
 				accessToken: encryptedToken,
 				expiresAt,
@@ -50,14 +50,14 @@ export const integrationRouter = createTRPCRouter({
 
 			if (!user)
 				throw new TRPCError({
-					message: "User not authenticated",
-					code: "UNAUTHORIZED",
+					message: 'User not authenticated',
+					code: 'UNAUTHORIZED',
 				});
 
 			await integrationsRepo.deleteProviderForUser(
 				ctx.db,
 				user.id,
-				"github",
+				'github',
 			);
 			return { success: true };
 		}),
@@ -69,14 +69,14 @@ export const integrationRouter = createTRPCRouter({
 
 			if (!user)
 				throw new TRPCError({
-					message: "User not authenticated",
-					code: "UNAUTHORIZED",
+					message: 'User not authenticated',
+					code: 'UNAUTHORIZED',
 				});
 
 			const connected = await integrationsRepo.isProviderAvailableForUser(
 				ctx.db,
 				user.id,
-				"github",
+				'github',
 			);
 			return { connected };
 		}),
@@ -94,11 +94,11 @@ export const integrationRouter = createTRPCRouter({
 	providers: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Get integration providers",
-				method: "GET",
-				path: "/integration/providers",
-				description: "Retrieves all integration providers for the user",
-				tags: ["Integration"],
+				summary: 'Get integration providers',
+				method: 'GET',
+				path: '/integration/providers',
+				description: 'Retrieves all integration providers for the user',
+				tags: ['Integration'],
 				protect: true,
 			},
 		})
@@ -121,8 +121,8 @@ export const integrationRouter = createTRPCRouter({
 
 			if (!user)
 				throw new TRPCError({
-					message: "User not authenticated",
-					code: "UNAUTHORIZED",
+					message: 'User not authenticated',
+					code: 'UNAUTHORIZED',
 				});
 
 			const integrations = await integrationsRepo.getProvidersForUser(
@@ -135,23 +135,23 @@ export const integrationRouter = createTRPCRouter({
 	disconnect: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Disconnect integration",
-				method: "POST",
-				path: "/integration/disconnect",
-				description: "Disconnects an integration",
-				tags: ["Integration"],
+				summary: 'Disconnect integration',
+				method: 'POST',
+				path: '/integration/disconnect',
+				description: 'Disconnects an integration',
+				tags: ['Integration'],
 				protect: true,
 			},
 		})
-		.input(z.object({ provider: z.enum(["trello", "github"]) }))
+		.input(z.object({ provider: z.enum(['trello', 'github']) }))
 		.output(z.object({}))
 		.mutation(async ({ ctx, input }) => {
 			const user = ctx.user;
 
 			if (!user)
 				throw new TRPCError({
-					message: "User not authenticated",
-					code: "UNAUTHORIZED",
+					message: 'User not authenticated',
+					code: 'UNAUTHORIZED',
 				});
 
 			const integration = await integrationsRepo.getProviderForUser(
@@ -162,8 +162,8 @@ export const integrationRouter = createTRPCRouter({
 
 			if (!integration)
 				throw new TRPCError({
-					message: "Integration not found",
-					code: "NOT_FOUND",
+					message: 'Integration not found',
+					code: 'NOT_FOUND',
 				});
 
 			await integrationsRepo.deleteProviderForUser(
@@ -177,16 +177,16 @@ export const integrationRouter = createTRPCRouter({
 	getAuthorizationUrl: protectedProcedure
 		.meta({
 			openapi: {
-				summary: "Get authorization URL for an integration",
-				method: "GET",
-				path: "/integration/authorize",
+				summary: 'Get authorization URL for an integration',
+				method: 'GET',
+				path: '/integration/authorize',
 				description:
-					"Retrieves the authorization URL for an integration",
-				tags: ["Integration"],
+					'Retrieves the authorization URL for an integration',
+				tags: ['Integration'],
 				protect: true,
 			},
 		})
-		.input(z.object({ provider: z.enum(["trello"]) }))
+		.input(z.object({ provider: z.enum(['trello']) }))
 		.output(z.object({ url: z.string() }))
 		.query(async ({ ctx, input }) => {
 			const apiKey = apiKeys[input.provider];
@@ -194,15 +194,15 @@ export const integrationRouter = createTRPCRouter({
 			if (!apiKey)
 				throw new TRPCError({
 					message: `${input.provider.at(0)?.toUpperCase() + input.provider.slice(1)} API key not set in environment variables`,
-					code: "INTERNAL_SERVER_ERROR",
+					code: 'INTERNAL_SERVER_ERROR',
 				});
 
 			const user = ctx.user;
 
 			if (!user)
 				throw new TRPCError({
-					message: "User not authenticated",
-					code: "UNAUTHORIZED",
+					message: 'User not authenticated',
+					code: 'UNAUTHORIZED',
 				});
 
 			const integration = await integrationsRepo.getProviderForUser(
@@ -214,10 +214,10 @@ export const integrationRouter = createTRPCRouter({
 			if (integration)
 				throw new TRPCError({
 					message: `${input.provider.at(0)?.toUpperCase() + input.provider.slice(1)} integration already exists`,
-					code: "BAD_REQUEST",
+					code: 'BAD_REQUEST',
 				});
 
-			const url = `${urls[input.provider]}/authorize?key=${apiKey}&expiration=never&response_type=token&scope=read&return_url=${env("NEXT_PUBLIC_BASE_URL")}/settings/trello/authorize&callback_method=fragment`;
+			const url = `${urls[input.provider]}/authorize?key=${apiKey}&expiration=never&response_type=token&scope=read&return_url=${env('NEXT_PUBLIC_BASE_URL')}/settings/trello/authorize&callback_method=fragment`;
 			return { url };
 		}),
 });

@@ -9,24 +9,24 @@ import {
 	isNull,
 	or,
 	sql,
-} from "drizzle-orm";
+} from 'drizzle-orm';
 
-import type { dbClient } from "@kan/db/client";
-import type { Permission, Role } from "@kan/shared";
+import type { dbClient } from '@kan/db/client';
+import type { Permission, Role } from '@kan/shared';
 import {
 	boards,
 	cards,
 	lists,
 	workspaceMembers,
 	workspaces,
-} from "@kan/db/schema";
+} from '@kan/db/schema';
 import {
 	generateUID,
 	generateWorkspacePrefix,
 	getDefaultPermissions,
-} from "@kan/shared";
+} from '@kan/shared';
 
-import * as permissionRepo from "./permission.repo";
+import * as permissionRepo from './permission.repo';
 
 // System role definitions
 const SYSTEM_ROLES: {
@@ -35,18 +35,18 @@ const SYSTEM_ROLES: {
 	hierarchyLevel: number;
 }[] = [
 	{
-		name: "admin",
-		description: "Full access to all workspace features",
+		name: 'admin',
+		description: 'Full access to all workspace features',
 		hierarchyLevel: 100,
 	},
 	{
-		name: "member",
-		description: "Standard member with create and edit permissions",
+		name: 'member',
+		description: 'Standard member with create and edit permissions',
 		hierarchyLevel: 50,
 	},
 	{
-		name: "guest",
-		description: "View-only access",
+		name: 'guest',
+		description: 'View-only access',
 		hierarchyLevel: 10,
 	},
 ];
@@ -69,7 +69,7 @@ export const create = async (
 		createdBy: string;
 		createdByEmail: string;
 		description?: string;
-		plan?: "free" | "team" | "pro" | "enterprise";
+		plan?: 'free' | 'team' | 'pro' | 'enterprise';
 	},
 ) => {
 	const [workspace] = await db
@@ -110,7 +110,7 @@ export const create = async (
 					...getDefaultPermissions(roleData.name),
 				] as Permission[],
 			});
-			if (roleData.name === "admin" && role) {
+			if (roleData.name === 'admin' && role) {
 				adminRoleId = role.id;
 			}
 		}
@@ -121,9 +121,9 @@ export const create = async (
 			email: workspaceInput.createdByEmail,
 			workspaceId: workspace.id,
 			createdBy: workspaceInput.createdBy,
-			role: "admin",
+			role: 'admin',
 			roleId: adminRoleId,
-			status: "active",
+			status: 'active',
 		});
 	}
 
@@ -139,7 +139,7 @@ export const update = async (
 	workspaceInput: {
 		name?: string;
 		slug?: string;
-		plan?: "free" | "team" | "pro" | "enterprise";
+		plan?: 'free' | 'team' | 'pro' | 'enterprise';
 		description?: string;
 		showEmailsToMembers?: boolean;
 		weekStartDay?: number;
@@ -275,7 +275,7 @@ export const getBySlugWithBoards = (db: dbClient, workspaceSlug: string) => {
 				},
 				where: and(
 					isNull(boards.deletedAt),
-					eq(boards.visibility, "public"),
+					eq(boards.visibility, 'public'),
 					eq(boards.isArchived, false),
 				),
 				orderBy: [asc(boards.name)],
@@ -311,7 +311,7 @@ export const getAllByUserId = async (db: dbClient, userId: string) => {
 		},
 		where: and(
 			eq(workspaceMembers.userId, userId),
-			eq(workspaceMembers.status, "active"),
+			eq(workspaceMembers.status, 'active'),
 			isNull(workspaceMembers.deletedAt),
 		),
 	});
@@ -380,7 +380,7 @@ export const isUserInWorkspace = async (
 	db: dbClient,
 	userId: string,
 	workspaceId: number,
-	role?: "admin" | "member",
+	role?: 'admin' | 'member',
 ) => {
 	const result = await db.query.workspaceMembers.findFirst({
 		columns: {
@@ -389,7 +389,7 @@ export const isUserInWorkspace = async (
 		where: and(
 			eq(workspaceMembers.userId, userId),
 			eq(workspaceMembers.workspaceId, workspaceId),
-			eq(workspaceMembers.status, "active"),
+			eq(workspaceMembers.status, 'active'),
 			isNull(workspaceMembers.deletedAt),
 			role ? eq(workspaceMembers.role, role) : undefined,
 		),
@@ -503,11 +503,11 @@ export const searchBoardsAndCards = async (
 	const allResults = [
 		...boardResults.map((board) => ({
 			...board,
-			type: "board" as const,
+			type: 'board' as const,
 		})),
 		...cardResults.map((card) => ({
 			...card,
-			type: "card" as const,
+			type: 'card' as const,
 		})),
 	];
 

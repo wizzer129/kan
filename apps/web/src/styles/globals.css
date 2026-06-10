@@ -3,94 +3,94 @@
 @tailwind utilities;
 
 :root {
-  /* Catppuccin Latte (light mode scale) */
-  --light-50: 220 23% 95%;
-  --light-100: 220 22% 92%;
-  --light-200: 220 21% 89%;
-  --light-300: 223 16% 83%;
-  --light-400: 225 14% 77%;
-  --light-500: 227 12% 71%;
-  --light-600: 228 11% 65%;
-  --light-700: 231 10% 59%;
-  --light-800: 232 10% 53%;
-  --light-900: 233 10% 47%;
-  --light-950: 233 13% 41%;
-  --light-1000: 234 16% 35%;
+	/* Catppuccin Latte (light mode scale) */
+	--light-50: 220 23% 95%;
+	--light-100: 220 22% 92%;
+	--light-200: 220 21% 89%;
+	--light-300: 223 16% 83%;
+	--light-400: 225 14% 77%;
+	--light-500: 227 12% 71%;
+	--light-600: 228 11% 65%;
+	--light-700: 231 10% 59%;
+	--light-800: 232 10% 53%;
+	--light-900: 233 10% 47%;
+	--light-950: 233 13% 41%;
+	--light-1000: 234 16% 35%;
 
-  /* Catppuccin Frappe (dark mode scale) */
-  --dark-50: 229 20% 17%;
-  --dark-100: 231 19% 20%;
-  --dark-200: 229 19% 23%;
-  --dark-300: 230 16% 30%;
-  --dark-400: 227 15% 37%;
-  --dark-500: 228 13% 44%;
-  --dark-600: 229 13% 52%;
-  --dark-700: 227 17% 58%;
-  --dark-800: 228 22% 66%;
-  --dark-900: 228 29% 73%;
-  --dark-950: 227 44% 80%;
-  --dark-1000: 227 70% 87%;
+	/* Catppuccin Frappe (dark mode scale) */
+	--dark-50: 229 20% 17%;
+	--dark-100: 231 19% 20%;
+	--dark-200: 229 19% 23%;
+	--dark-300: 230 16% 30%;
+	--dark-400: 227 15% 37%;
+	--dark-500: 228 13% 44%;
+	--dark-600: 229 13% 52%;
+	--dark-700: 227 17% 58%;
+	--dark-800: 228 22% 66%;
+	--dark-900: 228 29% 73%;
+	--dark-950: 227 44% 80%;
+	--dark-1000: 227 70% 87%;
 }
 
 html {
-  font-size: 14px;
-  height: 100vh;
-  overflow: hidden;
-  min-width: 320px;
+	font-size: 14px;
+	height: 100vh;
+	overflow: hidden;
+	min-width: 320px;
 }
 
 body {
-  @apply bg-light-50 dark:bg-dark-50;
+	@apply bg-light-50 dark:bg-dark-50;
 }
 
-[contenteditable="true"]:empty:before {
-  content: attr(placeholder);
-  display: block;
-  color: #707070;
-  font-size: 0.8rem;
+[contenteditable='true']:empty:before {
+	content: attr(placeholder);
+	display: block;
+	color: #707070;
+	font-size: 0.8rem;
 }
 
 .gradient-border::before {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    transparent 45deg,
-    rgba(244, 114, 182, 0.4) 85deg,
-    rgba(192, 132, 252, 0.4) 95deg,
-    transparent 110deg,
-    transparent 360deg
-  );
-  content: "";
-  position: absolute;
-  inset: -50%;
-  width: 200%;
-  height: 200%;
+	background: conic-gradient(
+		from 0deg,
+		transparent 0deg,
+		transparent 45deg,
+		rgba(244, 114, 182, 0.4) 85deg,
+		rgba(192, 132, 252, 0.4) 95deg,
+		transparent 110deg,
+		transparent 360deg
+	);
+	content: '';
+	position: absolute;
+	inset: -50%;
+	width: 200%;
+	height: 200%;
 }
 
 @layer utilities {
-  @supports not (overflow-wrap: anywhere) {
-    .break-anywhere {
-      word-break: break-word;
-    }
-  }
+	@supports not (overflow-wrap: anywhere) {
+		.break-anywhere {
+			word-break: break-word;
+		}
+	}
 
-  @supports (overflow-wrap: anywhere) {
-    .break-anywhere {
-      overflow-wrap: anywhere;
-    }
-  }
+	@supports (overflow-wrap: anywhere) {
+		.break-anywhere {
+			overflow-wrap: anywhere;
+		}
+	}
 }
 
 /* Tippy.js tooltip theme */
-.tippy-box[data-theme~="tooltip"] {
-  @apply rounded-md border border-light-600 bg-white px-2 py-1 text-sm text-neutral-900 shadow-lg dark:border-dark-600 dark:bg-dark-100 dark:text-dark-1000;
+.tippy-box[data-theme~='tooltip'] {
+	@apply rounded-md border border-light-600 bg-white px-2 py-1 text-sm text-neutral-900 shadow-lg dark:border-dark-600 dark:bg-dark-100 dark:text-dark-1000;
 }
 
-.tippy-box[data-theme~="tooltip"] > .tippy-arrow::before {
-  @apply border-t-light-600 dark:border-t-dark-600;
+.tippy-box[data-theme~='tooltip'] > .tippy-arrow::before {
+	@apply border-t-light-600 dark:border-t-dark-600;
 }
 
-.tippy-box[data-theme~="tooltip"][data-placement^="bottom"]
-  > .tippy-arrow::before {
-  @apply border-b-light-600 dark:border-b-dark-600;
+.tippy-box[data-theme~='tooltip'][data-placement^='bottom']
+	> .tippy-arrow::before {
+	@apply border-b-light-600 dark:border-b-dark-600;
 }

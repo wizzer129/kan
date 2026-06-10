@@ -1,4 +1,4 @@
-import { fileURLToPath } from "url";
+import { fileURLToPath } from 'url';
 
 /** @typedef {import("prettier").Config} PrettierConfig */
 /** @typedef {import("prettier-plugin-tailwindcss").PluginOptions} TailwindConfig */
@@ -6,50 +6,50 @@ import { fileURLToPath } from "url";
 
 /** @type { PrettierConfig | SortImportsConfig | TailwindConfig } */
 const config = {
-  plugins: [
-    "@ianvs/prettier-plugin-sort-imports",
-    "prettier-plugin-tailwindcss",
-  ],
-  tailwindConfig: fileURLToPath(
-    new URL("../../tooling/tailwind/web.ts", import.meta.url),
-  ),
-  tailwindFunctions: ["cn", "cva"],
-  importOrder: [
-    "<TYPES>",
-    "^(next/(.*)$)|^(next$)",
-    "<THIRD_PARTY_MODULES>",
-    "",
-    "<TYPES>^@kan",
-    "^@kan/(.*)$",
-    "",
-    "<TYPES>^[.|..|~]",
-    "^~/",
-    "^[../]",
-    "^[./]",
-  ],
-  importOrderParserPlugins: ["typescript", "jsx", "decorators-legacy"],
-  importOrderTypeScriptVersion: "4.4.0",
-  overrides: [
-    {
-      files: "*.{js,jsx,ts,tsx,json}",
-      options: {
-        useTabs: true,
-        tabWidth: 4,
-      },
-    },
-    {
-      files: "*.json.hbs",
-      options: {
-        parser: "json",
-      },
-    },
-    {
-      files: "*.js.hbs",
-      options: {
-        parser: "babel",
-      },
-    },
-  ],
+	quoteProps: 'consistent',
+	singleQuote: true,
+	trailingComma: 'all',
+	printWidth: 80,
+	useTabs: true,
+	bracketSpacing: true,
+	tabWidth: 4,
+	plugins: [
+		'@ianvs/prettier-plugin-sort-imports',
+		'prettier-plugin-tailwindcss',
+	],
+	tailwindConfig: fileURLToPath(
+		new URL('../../tooling/tailwind/web.ts', import.meta.url),
+	),
+	tailwindFunctions: ['cn', 'cva'],
+	importOrder: [
+		'<TYPES>',
+		'^(next/(.*)$)|^(next$)',
+		'<THIRD_PARTY_MODULES>',
+		'',
+		'<TYPES>^@kan',
+		'^@kan/(.*)$',
+		'',
+		'<TYPES>^[.|..|~]',
+		'^~/',
+		'^[../]',
+		'^[./]',
+	],
+	importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
+	importOrderTypeScriptVersion: '4.4.0',
+	overrides: [
+		{
+			files: '*.json.hbs',
+			options: {
+				parser: 'json',
+			},
+		},
+		{
+			files: '*.js.hbs',
+			options: {
+				parser: 'babel',
+			},
+		},
+	],
 };
 
 export default config;

@@ -1,16 +1,16 @@
-import { env } from "next-runtime-env";
+import { env } from 'next-runtime-env';
 
-import type { dbClient } from "@kan/db/client";
-import * as cardRepo from "@kan/db/repository/card.repo";
-import * as memberRepo from "@kan/db/repository/member.repo";
-import * as notificationRepo from "@kan/db/repository/notification.repo";
-import * as userRepo from "@kan/db/repository/user.repo";
-import * as workspaceRepo from "@kan/db/repository/workspace.repo";
-import { sendEmail } from "@kan/email";
-import { createLogger } from "@kan/logger";
-import { parseMentionsFromHTML } from "@kan/shared/utils";
+import type { dbClient } from '@kan/db/client';
+import * as cardRepo from '@kan/db/repository/card.repo';
+import * as memberRepo from '@kan/db/repository/member.repo';
+import * as notificationRepo from '@kan/db/repository/notification.repo';
+import * as userRepo from '@kan/db/repository/user.repo';
+import * as workspaceRepo from '@kan/db/repository/workspace.repo';
+import { sendEmail } from '@kan/email';
+import { createLogger } from '@kan/logger';
+import { parseMentionsFromHTML } from '@kan/shared/utils';
 
-const log = createLogger("notifications");
+const log = createLogger('notifications');
 
 /**
  * Sends mention notification emails to mentioned members
@@ -75,7 +75,7 @@ export async function sendMentionEmails({
 
 		if (membersToNotify.length === 0) return;
 
-		const baseUrl = env("NEXT_PUBLIC_BASE_URL");
+		const baseUrl = env('NEXT_PUBLIC_BASE_URL');
 		const cardUrl = `${baseUrl}/cards/${cardPublicId}`;
 
 		log.info(
@@ -84,7 +84,7 @@ export async function sendMentionEmails({
 				mentionCount: membersToNotify.length,
 				commenterUserId,
 			},
-			"Sending mention emails",
+			'Sending mention emails',
 		);
 		// Send emails to all mentioned members (only if notification doesn't exist)
 		await Promise.all(
@@ -102,7 +102,7 @@ export async function sendMentionEmails({
 						{
 							userId,
 							cardId,
-							type: "mention",
+							type: 'mention',
 						},
 					);
 
@@ -110,14 +110,14 @@ export async function sendMentionEmails({
 					if (notificationExists) {
 						log.debug(
 							{ email, cardPublicId },
-							"Skipping duplicate mention email",
+							'Skipping duplicate mention email',
 						);
 						return;
 					}
 
 					// Create notification record
 					await notificationRepo.create(db, {
-						type: "mention",
+						type: 'mention',
 						userId,
 						cardId,
 						commentId,
@@ -127,7 +127,7 @@ export async function sendMentionEmails({
 					await sendEmail(
 						email,
 						`${commenterName} mentioned you in a comment on ${cardTitle}`,
-						"MENTION",
+						'MENTION',
 						{
 							commenterName,
 							boardName,
@@ -135,16 +135,16 @@ export async function sendMentionEmails({
 							cardUrl,
 						},
 					);
-					log.info({ email, cardPublicId }, "Mention email sent");
+					log.info({ email, cardPublicId }, 'Mention email sent');
 				} catch (error) {
 					log.error(
 						{ err: error, email, cardPublicId },
-						"Failed to send mention email",
+						'Failed to send mention email',
 					);
 				}
 			}),
 		);
 	} catch (error) {
-		log.error({ err: error, cardPublicId }, "Error sending mention emails");
+		log.error({ err: error, cardPublicId }, 'Error sending mention emails');
 	}
 }

@@ -1,7 +1,7 @@
 ---
-title: "Kan + MinIO (S3)"
-mode: "wide"
-tag: "NEW"
+title: 'Kan + MinIO (S3)'
+mode: 'wide'
+tag: 'NEW'
 ---
 
 Deploy Kan with PostgreSQL and MinIO (S3-compatible storage) using Docker Compose, with clear steps and production notes.
@@ -9,15 +9,15 @@ Deploy Kan with PostgreSQL and MinIO (S3-compatible storage) using Docker Compos
 ## What you’ll set up
 
 <CardGroup cols={2}>
-  <Card title="Kan" icon="globe" color="#0284c7" horizontal>
-    Kan web app (Next.js), on port 3000.
-  </Card>
-  <Card title="PostgreSQL 15" icon="database" color="#65a30d" horizontal>
-    PostgreSQL database for Kan.
-  </Card>
+	<Card title="Kan" icon="globe" color="#0284c7" horizontal>
+		Kan web app (Next.js), on port 3000.
+	</Card>
+	<Card title="PostgreSQL 15" icon="database" color="#65a30d" horizontal>
+		PostgreSQL database for Kan.
+	</Card>
 </CardGroup>
 <Card title="MinIO (S3-compatible)" icon="cloud" color="#ca8a04" horizontal>
-  MinIO object storage (console port 9001, S3 API port 9000).
+	MinIO object storage (console port 9001, S3 API port 9000).
 </Card>
 
 ## How it works
@@ -40,17 +40,17 @@ Key domain settings:
 - A long random string for <code>BETTER_AUTH_SECRET</code> (32+ chars)
 
 <Note type="warning">
-  For production you’ll want a reverse proxy (Traefik/Nginx/Caddy), valid TLS
-  certificates, and DNS for your domains (e.g., <code>kan.example.com</code>,{" "}
-  <code>s3.example.com</code>).
+	For production you’ll want a reverse proxy (Traefik/Nginx/Caddy), valid TLS
+	certificates, and DNS for your domains (e.g., <code>kan.example.com</code>,{' '}
+	<code>s3.example.com</code>).
 </Note>
 
 ## Quick start
 
 <Tip type="info">
-  Why <code>localtest.me</code>? It resolves to <code>127.0.0.1</code>{" "}
-  automatically, so you can test domain-based configs locally without editing
-  hosts.
+	Why <code>localtest.me</code>? It resolves to <code>127.0.0.1</code>{' '}
+	automatically, so you can test domain-based configs locally without editing
+	hosts.
 </Tip>
 
 <Steps>
@@ -349,16 +349,16 @@ Key domain settings:
   </Accordion>
 
 <Accordion title="Next.js optimizer 400 — url parameter is not allowed">
-  <ul>
-    <li>
-      Exact match on <code>NEXT_PUBLIC_STORAGE_DOMAIN</code> with your storage
-      host.
-    </li>
-    <li>
-      Same host in <code>NEXT_PUBLIC_STORAGE_URL</code>.
-    </li>
-    <li>Update to the latest Kan image.</li>
-  </ul>
+	<ul>
+		<li>
+			Exact match on <code>NEXT_PUBLIC_STORAGE_DOMAIN</code> with your
+			storage host.
+		</li>
+		<li>
+			Same host in <code>NEXT_PUBLIC_STORAGE_URL</code>.
+		</li>
+		<li>Update to the latest Kan image.</li>
+	</ul>
 </Accordion>
 
   <Accordion title="Next/Image: “url parameter is valid but upstream response is invalid”">
