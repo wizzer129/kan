@@ -13,11 +13,16 @@ export function DeleteBoardConfirmation({
   isTemplate: boolean;
 }) {
   const router = useRouter();
+  const utils = api.useUtils();
   const { closeModal } = useModal();
 
   const deleteBoard = api.board.delete.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       closeModal();
+      await Promise.all([
+        utils.board.all.invalidate(),
+        utils.board.byId.invalidate(),
+      ]);
       router.push(isTemplate ? `/templates` : `/boards`);
     },
   });

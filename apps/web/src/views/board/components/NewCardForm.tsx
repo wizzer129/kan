@@ -27,7 +27,10 @@ import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
-import { CardBorderColorPicker } from "./CardBorderColorPicker";
+import {
+	CardBorderColorPicker,
+	DEFAULT_CARD_BORDER_COLOR,
+} from "./CardBorderColorPicker";
 
 type NewCardFormInput = NewCardInput & {
 	isCreateAnotherEnabled: boolean;
@@ -73,7 +76,7 @@ export function NewCardForm({
 			isCreateAnotherEnabled: false,
 			position: "start",
 			dueDate: null,
-			borderColor: null,
+			borderColor: DEFAULT_CARD_BORDER_COLOR,
 		},
 		resetOnClose: true,
 	});
@@ -214,7 +217,7 @@ export function NewCardForm({
 					isCreateAnotherEnabled,
 					position,
 					dueDate: null,
-					borderColor: null,
+					borderColor: DEFAULT_CARD_BORDER_COLOR,
 				};
 				reset(newFormState);
 				saveFormState(newFormState);
@@ -275,7 +278,7 @@ export function NewCardForm({
 			memberPublicIds: data.memberPublicIds,
 			position: data.position,
 			dueDate: data.dueDate ?? null,
-			borderColor: data.borderColor ?? null,
+			borderColor: data.borderColor ?? DEFAULT_CARD_BORDER_COLOR,
 		});
 	};
 
@@ -382,7 +385,12 @@ export function NewCardForm({
 					<div className="w-fit">
 						<CardBorderColorPicker
 							value={borderColor ?? null}
-							onChange={(value) => setValue("borderColor", value)}
+							onChange={(value) =>
+								setValue(
+									"borderColor",
+									value ?? DEFAULT_CARD_BORDER_COLOR,
+								)
+							}
 						/>
 					</div>
 					<div className="w-fit">

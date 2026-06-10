@@ -1,4 +1,10 @@
 import Link from "next/link";
+import {
+  Listbox,
+  ListboxButton,
+  ListboxOption,
+  ListboxOptions,
+} from "@headlessui/react";
 import { t } from "@lingui/core/macro";
 import { env } from "next-runtime-env";
 import {
@@ -208,20 +214,56 @@ export default function MembersPage() {
                   </span>
 
                   {canEditMember && session?.user.id !== memberId && (
-                    <select
+                    <Listbox
                       value={memberRole}
-                      onChange={(e) =>
-                        handleRoleChange(
-                          e.target.value as "admin" | "member" | "guest",
-                        )
+                      onChange={(value: "admin" | "member" | "guest") =>
+                        handleRoleChange(value)
                       }
                       disabled={updateRoleMutation.isPending}
-                      className="absolute inset-0 h-full w-full cursor-pointer appearance-none border-none bg-transparent p-0 text-[10px] leading-none opacity-0 focus:outline-none focus-visible:outline-none sm:text-[11px]"
                     >
-                      <option value="admin">{t`Admin`}</option>
-                      <option value="member">{t`Member`}</option>
-                      <option value="guest">{t`Guest`}</option>
-                    </select>
+                      <ListboxButton className="absolute inset-0 z-10 h-full w-full cursor-pointer rounded-md border-none bg-transparent p-0 text-[10px] leading-none opacity-0 focus:outline-none focus-visible:outline-none sm:text-[11px]" />
+                      <ListboxOptions className="absolute left-0 top-full z-20 mt-2 w-28 rounded-md border border-light-300 bg-light-50 p-1 text-xs shadow-lg ring-1 ring-black/5 dark:border-dark-300 dark:bg-dark-100 sm:text-sm">
+                        <ListboxOption
+                          value="admin"
+                          className={({ selected, active }) =>
+                            twMerge(
+                              "cursor-pointer rounded px-2 py-1.5 text-light-1000 dark:text-dark-1000",
+                              active &&
+                                "bg-light-200 dark:bg-dark-300 dark:text-dark-1000",
+                              selected && "font-semibold",
+                            )
+                          }
+                        >
+                          {t`Admin`}
+                        </ListboxOption>
+                        <ListboxOption
+                          value="member"
+                          className={({ selected, active }) =>
+                            twMerge(
+                              "cursor-pointer rounded px-2 py-1.5 text-light-1000 dark:text-dark-1000",
+                              active &&
+                                "bg-light-200 dark:bg-dark-300 dark:text-dark-1000",
+                              selected && "font-semibold",
+                            )
+                          }
+                        >
+                          {t`Member`}
+                        </ListboxOption>
+                        <ListboxOption
+                          value="guest"
+                          className={({ selected, active }) =>
+                            twMerge(
+                              "cursor-pointer rounded px-2 py-1.5 text-light-1000 dark:text-dark-1000",
+                              active &&
+                                "bg-light-200 dark:bg-dark-300 dark:text-dark-1000",
+                              selected && "font-semibold",
+                            )
+                          }
+                        >
+                          {t`Guest`}
+                        </ListboxOption>
+                      </ListboxOptions>
+                    </Listbox>
                   )}
                 </div>
               )}

@@ -17,6 +17,8 @@ const presetColors = [
   { label: "Lavender", value: "#babbf1" },
 ];
 
+export const DEFAULT_CARD_BORDER_COLOR = "#8caaee";
+
 interface CardBorderColorPickerProps {
   value: string | null;
   onChange: (value: string | null) => void;
@@ -27,7 +29,7 @@ export function CardBorderColorPicker({
   onChange,
 }: CardBorderColorPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const currentColor = value ?? "#8caaee";
+  const currentColor = value ?? DEFAULT_CARD_BORDER_COLOR;
 
   return (
     <div className="relative w-fit">
