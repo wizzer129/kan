@@ -222,14 +222,13 @@ export default function MembersPage() {
                       disabled={updateRoleMutation.isPending}
                     >
                       <ListboxButton className="absolute inset-0 z-10 h-full w-full cursor-pointer rounded-md border-none bg-transparent p-0 text-[10px] leading-none opacity-0 focus:outline-none focus-visible:outline-none sm:text-[11px]" />
-                      <ListboxOptions className="absolute left-0 top-full z-20 mt-2 w-28 rounded-md border border-light-300 bg-light-50 p-1 text-xs shadow-lg ring-1 ring-black/5 dark:border-dark-300 dark:bg-dark-100 sm:text-sm">
+                      <ListboxOptions anchor="bottom start" className="isolate z-[100] mt-2 w-28 rounded-md border border-light-200 bg-white p-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 dark:border-dark-400 dark:bg-dark-300 sm:text-sm">
                         <ListboxOption
                           value="admin"
                           className={({ selected, active }) =>
                             twMerge(
-                              "cursor-pointer rounded px-2 py-1.5 text-light-1000 dark:text-dark-1000",
-                              active &&
-                                "bg-light-200 dark:bg-dark-300 dark:text-dark-1000",
+                              "cursor-pointer rounded-[5px] px-2.5 py-1.5 text-neutral-900 dark:text-dark-950",
+                              active && "bg-light-200 dark:bg-dark-400",
                               selected && "font-semibold",
                             )
                           }
@@ -240,9 +239,8 @@ export default function MembersPage() {
                           value="member"
                           className={({ selected, active }) =>
                             twMerge(
-                              "cursor-pointer rounded px-2 py-1.5 text-light-1000 dark:text-dark-1000",
-                              active &&
-                                "bg-light-200 dark:bg-dark-300 dark:text-dark-1000",
+                              "cursor-pointer rounded-[5px] px-2.5 py-1.5 text-neutral-900 dark:text-dark-950",
+                              active && "bg-light-200 dark:bg-dark-400",
                               selected && "font-semibold",
                             )
                           }
@@ -253,9 +251,8 @@ export default function MembersPage() {
                           value="guest"
                           className={({ selected, active }) =>
                             twMerge(
-                              "cursor-pointer rounded px-2 py-1.5 text-light-1000 dark:text-dark-1000",
-                              active &&
-                                "bg-light-200 dark:bg-dark-300 dark:text-dark-1000",
+                              "cursor-pointer rounded-[5px] px-2.5 py-1.5 text-neutral-900 dark:text-dark-950",
+                              active && "bg-light-200 dark:bg-dark-400",
                               selected && "font-semibold",
                             )
                           }
