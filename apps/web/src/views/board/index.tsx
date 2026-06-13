@@ -1,5 +1,4 @@
 import type { DropResult } from '@hello-pangea/dnd';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useRouter } from 'next/router';
 import { DragDropContext, Draggable } from '@hello-pangea/dnd';
@@ -37,8 +36,10 @@ import { useWorkspace } from '~/providers/workspace';
 import { api } from '~/utils/api';
 import { formatToArray } from '~/utils/helpers';
 import { DeleteCardConfirmation } from '~/views/card/components/DeleteCardConfirmation';
+import { CardBorderColorPicker } from './components/CardBorderColorPicker';
 import BoardDropdown from './components/BoardDropdown';
 import Card from './components/Card';
+import { CardDetailModal } from './components/CardDetailModal';
 import { CardContextDueDateModal } from './components/CardContextDueDateModal';
 import { CardContextDuplicateModal } from './components/CardContextDuplicateModal';
 import { CardContextLabelsModal } from './components/CardContextLabelsModal';
@@ -64,10 +65,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 	const utils = api.useUtils();
 	const { showPopup } = usePopup();
 	const { workspace } = useWorkspace();
-	const { openModal, modalContentType, entityId, isOpen, setModalState } =
+	const { openModal, closeModal, modalContentType, entityId, isOpen, setModalState } =
 		useModal();
 	const [selectedPublicListId, setSelectedPublicListId] =
 		useState<PublicListId>('');
+	const [selectedCardPublicId, setSelectedCardPublicId] = useState<string | null>(null);
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
 
 	const [contextMenu, setContextMenu] = useState<{
@@ -173,6 +175,17 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		}
 	}, [boardId]);
 
+	// Open card modal from URL query param (deep-link support)
+	useEffect(() => {
+		if (!router.isReady) return;
+		const cardFromQuery = Array.isArray(router.query.card)
+			? router.query.card[0]
+			: router.query.card;
+		if (cardFromQuery) {
+			setSelectedCardPublicId(cardFromQuery);
+		}
+	}, [router.isReady, router.query.card]);
+
 	const isLoading = isInitialLoading || isQueryLoading;
 
 	useScrollRestore(
@@ -181,6 +194,36 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		router,
 		!isLoading && (boardData?.lists.length ?? 0) > 0,
 	);
+
+	useEffect(() => {
+		const el = scrollRef.current;
+		if (!el) return;
+		const onWheel = (e: WheelEvent) => {
+			if (e.deltaY === 0) return;
+
+			const target = e.target as HTMLElement | null;
+			const listScrollContainer = target?.closest(
+				'[data-board-list-scroll="true"]',
+			) as HTMLElement | null;
+
+			if (listScrollContainer) {
+				const canScrollUp = listScrollContainer.scrollTop > 0;
+				const canScrollDown =
+					listScrollContainer.scrollTop +
+						listScrollContainer.clientHeight <
+					listScrollContainer.scrollHeight;
+
+				if ((e.deltaY < 0 && canScrollUp) || (e.deltaY > 0 && canScrollDown)) {
+					return;
+				}
+			}
+
+			e.preventDefault();
+			el.scrollLeft += e.deltaY;
+		};
+		el.addEventListener('wheel', onWheel, { passive: false });
+		return () => el.removeEventListener('wheel', onWheel);
+	}, [scrollRef]);
 
 	const updateListMutation = api.list.update.useMutation({
 		onMutate: async (args) => {
@@ -289,6 +332,39 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		},
 	});
 
+	const updateBorderColorMutation = api.card.update.useMutation({
+		onMutate: async (args) => {
+			await utils.board.byId.cancel();
+			const currentState = utils.board.byId.getData(queryParams);
+			utils.board.byId.setData(queryParams, (oldBoard) => {
+				if (!oldBoard) return oldBoard;
+				return {
+					...oldBoard,
+					lists: oldBoard.lists.map((list) => ({
+						...list,
+						cards: list.cards.map((card) =>
+							card.publicId === args.cardPublicId
+								? { ...card, borderColor: args.borderColor ?? null }
+								: card,
+						),
+					})),
+				};
+			});
+			return { previousState: currentState };
+		},
+		onError: (_error, _args, context) => {
+			utils.board.byId.setData(queryParams, context?.previousState);
+			showPopup({
+				header: t`Unable to update border color`,
+				message: t`Please try again later, or contact customer support.`,
+				icon: 'error',
+			});
+		},
+		onSettled: async () => {
+			await utils.board.byId.invalidate(queryParams);
+		},
+	});
+
 	useEffect(() => {
 		if (isSuccess && boardData) {
 			setValue('name', boardData.name || '');
@@ -298,6 +374,21 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 	const openNewListForm = (publicBoardId: string) => {
 		openModal('NEW_LIST');
 		setSelectedPublicListId(publicBoardId);
+	};
+
+	const openCardModal = (publicId: string) => {
+		setSelectedCardPublicId(publicId);
+		void router.push(
+			{ query: { ...router.query, card: publicId } },
+			undefined,
+			{ shallow: true },
+		);
+	};
+
+	const closeCardModal = () => {
+		setSelectedCardPublicId(null);
+		const { card: _card, ...restQuery } = router.query;
+		void router.push({ query: restQuery }, undefined, { shallow: true });
 	};
 
 	const handleCardContextMenuAction = (action: CardContextMenuAction) => {
@@ -337,6 +428,10 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		}
 		if (action === 'delete') {
 			openModal('DELETE_CARD', cardPublicId);
+			return;
+		}
+		if (action === 'borderColor') {
+			openModal('CARD_CONTEXT_BORDER_COLOR', cardPublicId);
 			return;
 		}
 		const modalType =
@@ -537,6 +632,28 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 				</Modal>
 				<Modal
 					modalSize="sm"
+					isVisible={isOpen && modalContentType === 'CARD_CONTEXT_BORDER_COLOR'}
+					centered
+				>
+					<div className="p-5">
+						<h2 className="mb-4 text-base font-medium text-light-1000 dark:text-white">{t`Border color`}</h2>
+						<CardBorderColorPicker
+							value={boardData?.lists
+								.flatMap((l) => l.cards)
+								.find((c) => c.publicId === entityId)
+								?.borderColor ?? null}
+							onChange={(color) => {
+								updateBorderColorMutation.mutate({
+									cardPublicId: entityId,
+									borderColor: color ?? undefined,
+								});
+								closeModal();
+							}}
+						/>
+					</div>
+				</Modal>
+				<Modal
+					modalSize="sm"
 					isVisible={isOpen && modalContentType === 'DELETE_CARD'}
 				>
 					<DeleteCardConfirmation
@@ -553,7 +670,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 			<PageHead
 				title={`${boardData?.name ?? (isTemplate ? t`Board` : t`Template`)} | ${workspace.name ?? t`Workspace`}`}
 			/>
-			<div className="relative flex h-full flex-col">
+			<div className="relative flex h-full min-h-0 flex-col">
 				<PatternedBackground />
 				<div className="z-10 flex w-full flex-col justify-between p-6 md:flex-row md:p-8">
 					{isLoading && !boardData && (
@@ -665,7 +782,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 				<div
 					ref={scrollRef}
 					onMouseDown={onMouseDown}
-					className={`scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] z-0 flex-1 overflow-y-hidden overflow-x-scroll overscroll-contain scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300`}
+					className={`scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] z-0 min-h-0 flex-1 overflow-y-hidden overflow-x-scroll overscroll-contain scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300`}
 				>
 					{isLoading ? (
 						<div className="ml-[2rem] flex">
@@ -715,7 +832,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 									>
 										{(provided) => (
 											<div
-												className="flex"
+												className="flex h-full items-start"
 												ref={provided.innerRef}
 												{...provided.droppableProps}
 											>
@@ -744,7 +861,8 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 																			provided.innerRef
 																		}
 																		{...provided.droppableProps}
-																		className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 h-full max-h-[calc(100vh-225px)] min-h-[2rem] overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
+																								data-board-list-scroll="true"
+																		className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 min-h-[2rem] flex-1 overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
 																	>
 																		{list.cards.map(
 																			(
@@ -768,16 +886,16 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 																					{(
 																						provided,
 																					) => (
-																						<Link
-																							onClick={(
-																								e,
-																							) => {
+																						<div
+																							onClick={() => {
 																								if (
-																									card.publicId.startsWith(
+																									!card.publicId.startsWith(
 																										'PLACEHOLDER',
 																									)
 																								)
-																									e.preventDefault();
+																									openCardModal(
+																										card.publicId,
+																									);
 																							}}
 																							onContextMenu={(
 																								e,
@@ -805,12 +923,15 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 																							key={
 																								card.publicId
 																							}
-																							href={
-																								isTemplate
-																									? `/templates/${boardId}/cards/${card.publicId}`
-																									: `/cards/${card.publicId}`
-																							}
-																							className={`mb-2 flex !cursor-pointer flex-col ${
+																							role="button"
+																							tabIndex={0}
+																							onKeyDown={(e) => {
+																								if (e.key === 'Enter' || e.key === ' ') {
+																									if (!card.publicId.startsWith('PLACEHOLDER'))
+																										openCardModal(card.publicId);
+																								}
+																							}}
+																							className={`mb-2 flex cursor-pointer flex-col ${
 																								card.publicId.startsWith(
 																									'PLACEHOLDER',
 																								)
@@ -863,7 +984,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 																									null
 																								}
 																							/>
-																						</Link>
+																						</div>
 																					)}
 																				</Draggable>
 																			),
@@ -898,6 +1019,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 				)}
 				{renderModalContent()}
 			</div>
+			<CardDetailModal
+				cardPublicId={selectedCardPublicId}
+				isTemplate={isTemplate}
+				onClose={closeCardModal}
+			/>
 		</>
 	);
 }

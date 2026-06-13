@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { t } from '@lingui/core/macro';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { HiXMark } from 'react-icons/hi2';
+import { HiBars3BottomLeft, HiXMark } from 'react-icons/hi2';
 import { IoChevronForwardSharp } from 'react-icons/io5';
 
 import { authClient } from '@kan/auth/client';
@@ -47,13 +47,13 @@ interface FormValues {
 	description: string;
 }
 
-export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
+export function CardRightPanel({ isTemplate, cardPublicId: cardPublicIdProp }: { isTemplate?: boolean; cardPublicId?: string }) {
 	const router = useRouter();
 	const { canEditCard } = usePermissions();
 	const { data: session } = authClient.useSession();
-	const cardId = Array.isArray(router.query.cardId)
+	const cardId = cardPublicIdProp ?? (Array.isArray(router.query.cardId)
 		? router.query.cardId[0]
-		: router.query.cardId;
+		: router.query.cardId);
 
 	const { data: card } = api.card.byId.useQuery(
 		{ cardPublicId: cardId ?? '' },
@@ -122,7 +122,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
 		}) ?? [];
 
 	return (
-		<div className="h-full w-[360px] border-l-[1px] border-light-300 bg-light-50 p-8 text-light-900 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900">
+		<div className="h-full w-[min(22rem,100vw-1rem)] border-l-[1px] border-light-300 bg-light-50 p-4 text-light-900 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900 sm:p-6 md:w-[360px] md:p-8">
 			<div className="mb-4 flex w-full flex-row pt-[18px]">
 				<p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`List`}</p>
 				<ListSelector
@@ -165,7 +165,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
 	);
 }
 
-export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
+export default function CardPage({ isTemplate, cardPublicId: cardPublicIdProp, onClose, onOpenDetails }: { isTemplate?: boolean; cardPublicId?: string; onClose?: () => void; onOpenDetails?: () => void }) {
 	const router = useRouter();
 	const utils = api.useUtils();
 	const {
@@ -185,9 +185,9 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 		string | null
 	>(null);
 
-	const cardId = Array.isArray(router.query.cardId)
+	const cardId = cardPublicIdProp ?? (Array.isArray(router.query.cardId)
 		? router.query.cardId[0]
-		: router.query.cardId;
+		: router.query.cardId);
 
 	const {
 		data: card,
@@ -198,14 +198,14 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 		{ enabled: !!cardId && cardId.length >= 12 },
 	);
 
-	// Redirect to 404 if card doesn't exist
+	// Redirect to 404 if card doesn't exist (skip in modal mode)
 	useEffect(() => {
-		if (router.isReady && cardId && !isLoading) {
+		if (!onClose && router.isReady && cardId && !isLoading) {
 			if (error?.data?.code === 'NOT_FOUND' || (!card && !isLoading)) {
 				router.replace('/404');
 			}
 		}
-	}, [router, cardId, isLoading, error, card]);
+	}, [router, cardId, isLoading, error, card, onClose]);
 
 	const isCreator = card?.createdBy && session?.user.id === card.createdBy;
 	const canEdit = canEditCard || isCreator;
@@ -321,15 +321,17 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 
 	return (
 		<>
-			<PageHead
-				title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
-			/>
+			{!onClose && (
+				<PageHead
+					title={t`${card?.title ?? t`Card`} | ${board?.name ?? t`Board`}`}
+				/>
+			)}
 			<div
 				className="flex h-full flex-1 flex-col overflow-hidden border-l-[5px] border-transparent"
 				style={{ borderLeftColor: card?.borderColor ?? undefined }}
 			>
 				{/* Full-width top strip with board link and dropdown */}
-				<div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 px-8 py-2 dark:border-dark-300 dark:bg-dark-50">
+				<div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 pl-4 pr-[max(0.5rem,env(safe-area-inset-right))] py-2 dark:border-dark-300 dark:bg-dark-50 md:px-8">
 					{!card && isLoading && (
 						<div className="flex space-x-2">
 							<div className="h-[1.5rem] w-[150px] animate-pulse rounded-[5px] bg-light-300 dark:bg-dark-300" />
@@ -337,24 +339,26 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 					)}
 					{card && (
 						<>
-							<div className="flex items-center gap-1">
-								<Link
-									className="whitespace-nowrapleading-[1.5rem] text-sm font-bold text-light-900 dark:text-dark-950"
-									href={`${isTemplate ? '/templates' : '/boards'}`}
-								>
-									{workspace.name}
-								</Link>
-								<IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
-								<Link
-									className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-900 dark:text-dark-950"
-									href={`${isTemplate ? '/templates' : '/boards'}/${board?.publicId}`}
-								>
-									{board?.name}
-								</Link>
+							<div className="min-w-0 flex flex-1 items-center gap-1 overflow-hidden">
+								<div className="hidden min-w-0 items-center gap-1 overflow-hidden md:flex">
+									<Link
+										className="whitespace-nowrapleading-[1.5rem] truncate text-sm font-bold text-light-900 dark:text-dark-950"
+										href={`${isTemplate ? '/templates' : '/boards'}`}
+									>
+										{workspace.name}
+									</Link>
+									<IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
+									<Link
+										className="truncate whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-900 dark:text-dark-950"
+										href={`${isTemplate ? '/templates' : '/boards'}/${board?.publicId}`}
+									>
+										{board?.name}
+									</Link>
+								</div>
 								{card.cardNumber != null &&
 									card.list.board.workspace.cardPrefix && (
 										<>
-											<IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
+											<IoChevronForwardSharp className="hidden h-[10px] w-[10px] text-light-900 dark:text-dark-900 md:block" />
 											<span className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-700 dark:text-dark-800">
 												{
 													card.list.board.workspace
@@ -365,7 +369,17 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 										</>
 									)}
 							</div>
-							<div className="flex items-center gap-2">
+							<div className="ml-2 flex shrink-0 items-center gap-1 md:gap-2">
+								{onOpenDetails && (
+									<button
+										type="button"
+										onClick={onOpenDetails}
+										className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200 md:hidden"
+										aria-label={t`Card details`}
+									>
+										<HiBars3BottomLeft className="h-4 w-4" />
+									</button>
+								)}
 								<Dropdown
 									cardPublicId={cardId}
 									isTemplate={isTemplate}
@@ -380,6 +394,16 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 									listPublicId={card?.list.publicId}
 									cardIndex={card?.index}
 								/>
+							{onClose ? (
+								<button
+									type="button"
+									onClick={onClose}
+									className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
+									aria-label={t`Close`}
+								>
+									<HiXMark className="h-4 w-4" />
+								</button>
+							) : (
 								<Link
 									href={`/${isTemplate ? 'templates' : 'boards'}/${boardId}`}
 									className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
@@ -387,6 +411,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
 								>
 									<HiXMark className="h-4 w-4" />
 								</Link>
+							)}
 							</div>
 						</>
 					)}

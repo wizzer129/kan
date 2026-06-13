@@ -5,6 +5,7 @@ import {
 	HiOutlineArrowRightCircle,
 	HiOutlineCalendar,
 	HiOutlineDocumentDuplicate,
+	HiOutlineSwatch,
 	HiOutlineTag,
 	HiOutlineTrash,
 	HiOutlineUserGroup,
@@ -15,6 +16,7 @@ export type CardContextMenuAction =
 	| 'move'
 	| 'labels'
 	| 'dueDate'
+	| 'borderColor'
 	| 'copyLink'
 	| 'duplicate'
 	| 'delete';
@@ -55,6 +57,12 @@ const MENU_ITEMS: {
 		action: 'dueDate',
 		label: t`Set due date`,
 		icon: <HiOutlineCalendar className="h-4 w-4 shrink-0" />,
+		requiresEdit: true,
+	},
+	{
+		action: 'borderColor',
+		label: t`Edit border color`,
+		icon: <HiOutlineSwatch className="h-4 w-4 shrink-0" />,
 		requiresEdit: true,
 	},
 	{

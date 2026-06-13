@@ -1,6 +1,6 @@
 import { t } from '@lingui/core/macro';
 import {
-	HiEllipsisHorizontal,
+	HiOutlineCog6Tooth,
 	HiHashtag,
 	HiLink,
 	HiOutlineCheckCircle,
@@ -176,7 +176,7 @@ export default function CardDropdown({
 
 	return (
 		<Dropdown items={items}>
-			<HiEllipsisHorizontal className="h-5 w-5 text-dark-900" />
+			<HiOutlineCog6Tooth className="h-5 w-5 text-dark-900" />
 		</Dropdown>
 	);
 }
