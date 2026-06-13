@@ -53,10 +53,10 @@ export default function Preview({
 			{activeView === 'desktop' ? (
 				<iframe
 					srcDoc={markup}
-					className="w-full h-[calc(100vh_-_70px)]"
+					className="h-[calc(100vh_-_70px)] w-full"
 				/>
 			) : (
-				<div className="flex gap-6 mx-auto p-6 max-w-3xl">
+				<div className="mx-auto flex max-w-3xl gap-6 p-6">
 					<Tooltip.Provider>
 						<CodeContainer
 							markups={[

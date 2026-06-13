@@ -36,16 +36,16 @@ import { useWorkspace } from '~/providers/workspace';
 import { api } from '~/utils/api';
 import { formatToArray } from '~/utils/helpers';
 import { DeleteCardConfirmation } from '~/views/card/components/DeleteCardConfirmation';
-import { CardBorderColorPicker } from './components/CardBorderColorPicker';
 import BoardDropdown from './components/BoardDropdown';
 import Card from './components/Card';
-import { CardDetailModal } from './components/CardDetailModal';
+import { CardBorderColorPicker } from './components/CardBorderColorPicker';
 import { CardContextDueDateModal } from './components/CardContextDueDateModal';
 import { CardContextDuplicateModal } from './components/CardContextDuplicateModal';
 import { CardContextLabelsModal } from './components/CardContextLabelsModal';
 import { CardContextMembersModal } from './components/CardContextMembersModal';
 import { CardContextMenu } from './components/CardContextMenu';
 import { CardContextMoveListModal } from './components/CardContextMoveListModal';
+import { CardDetailModal } from './components/CardDetailModal';
 import { DeleteBoardConfirmation } from './components/DeleteBoardConfirmation';
 import { DeleteListConfirmation } from './components/DeleteListConfirmation';
 import Filters from './components/Filters';
@@ -65,11 +65,19 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 	const utils = api.useUtils();
 	const { showPopup } = usePopup();
 	const { workspace } = useWorkspace();
-	const { openModal, closeModal, modalContentType, entityId, isOpen, setModalState } =
-		useModal();
+	const {
+		openModal,
+		closeModal,
+		modalContentType,
+		entityId,
+		isOpen,
+		setModalState,
+	} = useModal();
 	const [selectedPublicListId, setSelectedPublicListId] =
 		useState<PublicListId>('');
-	const [selectedCardPublicId, setSelectedCardPublicId] = useState<string | null>(null);
+	const [selectedCardPublicId, setSelectedCardPublicId] = useState<
+		string | null
+	>(null);
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
 
 	const [contextMenu, setContextMenu] = useState<{
@@ -213,7 +221,10 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 						listScrollContainer.clientHeight <
 					listScrollContainer.scrollHeight;
 
-				if ((e.deltaY < 0 && canScrollUp) || (e.deltaY > 0 && canScrollDown)) {
+				if (
+					(e.deltaY < 0 && canScrollUp) ||
+					(e.deltaY > 0 && canScrollDown)
+				) {
 					return;
 				}
 			}
@@ -344,7 +355,10 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 						...list,
 						cards: list.cards.map((card) =>
 							card.publicId === args.cardPublicId
-								? { ...card, borderColor: args.borderColor ?? null }
+								? {
+										...card,
+										borderColor: args.borderColor ?? null,
+									}
 								: card,
 						),
 					})),
@@ -356,6 +370,45 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 			utils.board.byId.setData(queryParams, context?.previousState);
 			showPopup({
 				header: t`Unable to update border color`,
+				message: t`Please try again later, or contact customer support.`,
+				icon: 'error',
+			});
+		},
+		onSettled: async () => {
+			await utils.board.byId.invalidate(queryParams);
+		},
+	});
+
+	const updateListColorMutation = api.list.update.useMutation({
+		onMutate: async (args) => {
+			await utils.board.byId.cancel();
+
+			const currentState = utils.board.byId.getData(queryParams);
+
+			utils.board.byId.setData(queryParams, (oldBoard) => {
+				if (!oldBoard) return oldBoard;
+
+				return {
+					...oldBoard,
+					lists: oldBoard.lists.map((list) =>
+						list.publicId === args.listPublicId
+							? { ...list, borderColor: args.borderColor ?? null }
+							: list,
+					),
+					allLists: oldBoard.allLists.map((list) =>
+						list.publicId === args.listPublicId
+							? { ...list, borderColor: args.borderColor ?? null }
+							: list,
+					),
+				};
+			});
+
+			return { previousState: currentState };
+		},
+		onError: (_error, _args, context) => {
+			utils.board.byId.setData(queryParams, context?.previousState);
+			showPopup({
+				header: t`Unable to update list color`,
 				message: t`Please try again later, or contact customer support.`,
 				icon: 'error',
 			});
@@ -496,6 +549,33 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 				</Modal>
 
 				<Modal
+					modalSize="sm"
+					isVisible={
+						isOpen && modalContentType === 'LIST_BORDER_COLOR'
+					}
+					centered
+				>
+					<div className="p-5">
+						<h2 className="mb-4 text-base font-medium text-light-1000 dark:text-white">{t`List border color`}</h2>
+						<CardBorderColorPicker
+							value={
+								boardData?.lists.find(
+									(list) =>
+										list.publicId === selectedPublicListId,
+								)?.borderColor ?? null
+							}
+							onChange={(color) => {
+								updateListColorMutation.mutate({
+									listPublicId: selectedPublicListId,
+									borderColor: color ?? null,
+								});
+								closeModal();
+							}}
+						/>
+					</div>
+				</Modal>
+
+				<Modal
 					modalSize="md"
 					isVisible={isOpen && modalContentType === 'NEW_CARD'}
 				>
@@ -632,16 +712,21 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 				</Modal>
 				<Modal
 					modalSize="sm"
-					isVisible={isOpen && modalContentType === 'CARD_CONTEXT_BORDER_COLOR'}
+					isVisible={
+						isOpen &&
+						modalContentType === 'CARD_CONTEXT_BORDER_COLOR'
+					}
 					centered
 				>
 					<div className="p-5">
 						<h2 className="mb-4 text-base font-medium text-light-1000 dark:text-white">{t`Border color`}</h2>
 						<CardBorderColorPicker
-							value={boardData?.lists
-								.flatMap((l) => l.cards)
-								.find((c) => c.publicId === entityId)
-								?.borderColor ?? null}
+							value={
+								boardData?.lists
+									.flatMap((l) => l.cards)
+									.find((c) => c.publicId === entityId)
+									?.borderColor ?? null
+							}
 							onChange={(color) => {
 								updateBorderColorMutation.mutate({
 									cardPublicId: entityId,
@@ -861,7 +946,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 																			provided.innerRef
 																		}
 																		{...provided.droppableProps}
-																								data-board-list-scroll="true"
+																		data-board-list-scroll="true"
 																		className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 min-h-[2rem] flex-1 overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
 																	>
 																		{list.cards.map(
@@ -924,11 +1009,26 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 																								card.publicId
 																							}
 																							role="button"
-																							tabIndex={0}
-																							onKeyDown={(e) => {
-																								if (e.key === 'Enter' || e.key === ' ') {
-																									if (!card.publicId.startsWith('PLACEHOLDER'))
-																										openCardModal(card.publicId);
+																							tabIndex={
+																								0
+																							}
+																							onKeyDown={(
+																								e,
+																							) => {
+																								if (
+																									e.key ===
+																										'Enter' ||
+																									e.key ===
+																										' '
+																								) {
+																									if (
+																										!card.publicId.startsWith(
+																											'PLACEHOLDER',
+																										)
+																									)
+																										openCardModal(
+																											card.publicId,
+																										);
 																								}
 																							}}
 																							className={`mb-2 flex cursor-pointer flex-col ${

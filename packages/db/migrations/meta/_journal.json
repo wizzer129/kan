@@ -260,6 +260,13 @@
 			"when": 1781035200000,
 			"tag": "20260609120000_AddBoardColors",
 			"breakpoints": true
+		},
+		{
+			"idx": 37,
+			"version": "7",
+			"when": 1781393229690,
+			"tag": "20260613232709_AddListBorderColor",
+			"breakpoints": true
 		}
 	]
 }

@@ -39,7 +39,7 @@ export const CodeContainer: React.FC<Readonly<CodeContainerProps>> = ({
 			<a
 				href={url}
 				download={file.name}
-				className="text-slate-11 transition ease-in-out duration-200 hover:text-slate-12"
+				className="text-slate-11 transition duration-200 ease-in-out hover:text-slate-12"
 			>
 				<IconDownload />
 			</a>
@@ -70,7 +70,7 @@ export const CodeContainer: React.FC<Readonly<CodeContainerProps>> = ({
 	return (
 		<pre
 			className={
-				'border-slate-6 relative w-full items-center whitespace-pre rounded-md border text-sm backdrop-blur-md'
+				'relative w-full items-center whitespace-pre rounded-md border border-slate-6 text-sm backdrop-blur-md'
 			}
 			style={{
 				lineHeight: '130%',
@@ -86,7 +86,7 @@ export const CodeContainer: React.FC<Readonly<CodeContainerProps>> = ({
 							const isCurrentLang = activeLang === language;
 							return (
 								<motion.button
-									className={`relative py-[8px] px-4 text-sm font-medium font-sans transition ease-in-out duration-200 hover:text-slate-12 ${
+									className={`relative px-4 py-[8px] font-sans text-sm font-medium transition duration-200 ease-in-out hover:text-slate-12 ${
 										activeLang !== language
 											? 'text-slate-11'
 											: 'text-slate-12'
@@ -97,7 +97,7 @@ export const CodeContainer: React.FC<Readonly<CodeContainerProps>> = ({
 									{isCurrentLang && (
 										<motion.span
 											layoutId="code"
-											className="absolute left-0 right-0 top-0 bottom-0 bg-slate-4"
+											className="absolute bottom-0 left-0 right-0 top-0 bg-slate-4"
 											initial={{ opacity: 0 }}
 											animate={{ opacity: 1 }}
 											exit={{ opacity: 0 }}
@@ -110,13 +110,13 @@ export const CodeContainer: React.FC<Readonly<CodeContainerProps>> = ({
 					</LayoutGroup>
 				</div>
 				<Tooltip>
-					<Tooltip.Trigger className="absolute top-2 right-2 hidden md:block">
+					<Tooltip.Trigger className="absolute right-2 top-2 hidden md:block">
 						{renderClipboardIcon()}
 					</Tooltip.Trigger>
 					<Tooltip.Content>Copy to Clipboard</Tooltip.Content>
 				</Tooltip>
 				<Tooltip>
-					<Tooltip.Trigger className="text-gray-11 absolute top-2 right-8 hidden md:block">
+					<Tooltip.Trigger className="text-gray-11 absolute right-8 top-2 hidden md:block">
 						{renderDownloadIcon()}
 					</Tooltip.Trigger>
 					<Tooltip.Content>Download</Tooltip.Content>

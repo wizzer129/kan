@@ -4,6 +4,7 @@ import {
 	bigserial,
 	integer,
 	pgTable,
+	text,
 	timestamp,
 	uuid,
 	varchar,
@@ -18,6 +19,7 @@ export const lists = pgTable('list', {
 	id: bigserial('id', { mode: 'number' }).primaryKey(),
 	publicId: varchar('publicId', { length: 12 }).notNull().unique(),
 	name: varchar('name', { length: 255 }).notNull(),
+	borderColor: text('borderColor'),
 	index: integer('index').notNull(),
 	createdBy: uuid('createdBy').references(() => users.id, {
 		onDelete: 'set null',

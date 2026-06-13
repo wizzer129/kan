@@ -12,6 +12,7 @@ import Toggle from '~/components/Toggle';
 import { useModal } from '~/providers/modal';
 import { usePopup } from '~/providers/popup';
 import { api } from '~/utils/api';
+import { CardBorderColorPicker } from './CardBorderColorPicker';
 
 type NewListFormInput = NewListInput & {
 	isCreateAnotherEnabled: boolean;
@@ -41,11 +42,13 @@ export function NewListForm({
 			defaultValues: {
 				name: '',
 				boardPublicId: boardPublicId,
+				borderColor: null,
 				isCreateAnotherEnabled: false,
 			},
 		});
 
 	const isCreateAnotherEnabled = watch('isCreateAnotherEnabled');
+	const borderColor = watch('borderColor');
 
 	const createList = api.list.create.useMutation({
 		onMutate: async (args) => {
@@ -59,6 +62,7 @@ export function NewListForm({
 				const newList = {
 					publicId: generateUID(),
 					name: args.name,
+					borderColor: args.borderColor ?? null,
 					boardId: 1,
 					boardPublicId,
 					cards: [],
@@ -96,17 +100,23 @@ export function NewListForm({
 		if (!isCreateAnotherEnabled) closeModal();
 		reset({
 			name: '',
+			borderColor: data.borderColor ?? null,
 			isCreateAnotherEnabled,
 		});
 
 		createList.mutate({
 			name: data.name,
 			boardPublicId,
+			borderColor: data.borderColor ?? null,
 		});
 	};
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)}>
+		<form
+			onSubmit={handleSubmit(onSubmit)}
+			className="rounded-lg border border-light-600 dark:border-dark-600"
+			style={{ borderColor: borderColor ?? undefined }}
+		>
 			<div className="px-5 pt-5">
 				<div className="flex w-full items-center justify-between pb-4">
 					<h2 className="text-sm font-bold text-neutral-900 dark:text-dark-1000">
@@ -138,6 +148,13 @@ export function NewListForm({
 						}
 					}}
 				/>
+
+				<div className="mt-4">
+					<CardBorderColorPicker
+						value={borderColor ?? null}
+						onChange={(value) => setValue('borderColor', value)}
+					/>
+				</div>
 			</div>
 			<div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
 				<Toggle

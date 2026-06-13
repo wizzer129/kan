@@ -64,6 +64,7 @@ export const getAllByWorkspaceId = async (
 				columns: {
 					publicId: true,
 					name: true,
+					borderColor: true,
 					index: true,
 				},
 				orderBy: [asc(lists.index)],
@@ -255,6 +256,7 @@ export const getByPublicId = async (
 				columns: {
 					publicId: true,
 					name: true,
+					borderColor: true,
 					boardId: true,
 					index: true,
 				},
@@ -361,6 +363,7 @@ export const getByPublicId = async (
 				columns: {
 					publicId: true,
 					name: true,
+					borderColor: true,
 				},
 				where: isNull(lists.deletedAt),
 				orderBy: [asc(lists.index)],
@@ -455,6 +458,7 @@ export const getBySlug = async (
 				columns: {
 					publicId: true,
 					name: true,
+					borderColor: true,
 					boardId: true,
 					index: true,
 				},
@@ -540,6 +544,7 @@ export const getBySlug = async (
 				columns: {
 					publicId: true,
 					name: true,
+					borderColor: true,
 				},
 				where: isNull(lists.deletedAt),
 				orderBy: [asc(lists.index)],

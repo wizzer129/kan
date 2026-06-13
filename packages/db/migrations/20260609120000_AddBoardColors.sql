@@ -1,2 +1,2 @@
-ALTER TABLE "board" ADD COLUMN "backgroundColor" text;
-ALTER TABLE "board" ADD COLUMN "borderColor" text;
+ALTER TABLE "board" ADD COLUMN IF NOT EXISTS "backgroundColor" text;
+ALTER TABLE "board" ADD COLUMN IF NOT EXISTS "borderColor" text;

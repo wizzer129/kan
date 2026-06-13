@@ -30,6 +30,11 @@ export const listRouter = createTRPCRouter({
 			z.object({
 				name: z.string().min(1),
 				boardPublicId: z.string().min(12),
+				borderColor: z
+					.string()
+					.regex(/^#(?:[0-9a-fA-F]{6})$/)
+					.nullable()
+					.optional(),
 			}),
 		)
 		.output(listCreateResponseSchema)
@@ -62,6 +67,7 @@ export const listRouter = createTRPCRouter({
 
 			const result = await listRepo.create(ctx.db, {
 				name: input.name,
+				borderColor: input.borderColor ?? null,
 				createdBy: userId,
 				boardId: board.id,
 			});
@@ -160,6 +166,11 @@ export const listRouter = createTRPCRouter({
 				listPublicId: z.string().min(12),
 				name: z.string().min(1).optional(),
 				index: z.number().optional(),
+				borderColor: z
+					.string()
+					.regex(/^#(?:[0-9a-fA-F]{6})$/)
+					.nullable()
+					.optional(),
 			}),
 		)
 		.output(listUpdateResponseSchema)
@@ -191,12 +202,17 @@ export const listRouter = createTRPCRouter({
 				list.createdBy,
 			);
 
-			let result: { name: string; publicId: string } | undefined;
+			let result:
+				| { name: string; publicId: string; borderColor: string | null }
+				| undefined;
 
-			if (input.name) {
+			if (input.name !== undefined || input.borderColor !== undefined) {
 				result = await listRepo.update(
 					ctx.db,
-					{ name: input.name },
+					{
+						name: input.name,
+						borderColor: input.borderColor,
+					},
 					{ listPublicId: input.listPublicId },
 				);
 			}

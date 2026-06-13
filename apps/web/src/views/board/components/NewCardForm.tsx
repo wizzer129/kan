@@ -76,7 +76,7 @@ export function NewCardForm({
 			isCreateAnotherEnabled: false,
 			position: 'start',
 			dueDate: null,
-			borderColor: DEFAULT_CARD_BORDER_COLOR,
+			borderColor: null,
 		},
 		resetOnClose: true,
 	});
@@ -94,6 +94,7 @@ export function NewCardForm({
 	const description = watch('description');
 	const dueDate = watch('dueDate');
 	const borderColor = watch('borderColor');
+	const selectedListPublicId = watch('listPublicId');
 	const [isDateSelectorOpen, setIsDateSelectorOpen] = useState(false);
 
 	// saving form state whenever form values change
@@ -107,6 +108,14 @@ export function NewCardForm({
 	const { data: boardData } = api.board.byId.useQuery(queryParams, {
 		enabled: !!boardPublicId,
 	});
+	const selectedBoardList = boardData?.lists.find(
+		(list) => list.publicId === selectedListPublicId,
+	);
+	const selectedListBorderColor =
+		selectedBoardList?.borderColor ?? DEFAULT_CARD_BORDER_COLOR;
+	const [lastAutoAppliedListId, setLastAutoAppliedListId] = useState<
+		string | null
+	>(null);
 
 	// this adds the new created label to selected labels
 	useEffect(() => {
@@ -138,6 +147,21 @@ export function NewCardForm({
 		}
 	}, [boardData?.labels, labelPublicIds, modalStates.NEW_LABEL_CREATED]);
 
+	useEffect(() => {
+		if (
+			selectedListPublicId &&
+			selectedListPublicId !== lastAutoAppliedListId
+		) {
+			setValue('borderColor', selectedListBorderColor);
+			setLastAutoAppliedListId(selectedListPublicId);
+		}
+	}, [
+		lastAutoAppliedListId,
+		selectedListBorderColor,
+		selectedListPublicId,
+		setValue,
+	]);
+
 	const createCard = api.card.create.useMutation({
 		onMutate: async (args) => {
 			await utils.board.byId.cancel();
@@ -155,7 +179,8 @@ export function NewCardForm({
 							listId: 2,
 							description: '',
 							dueDate: args.dueDate ?? null,
-							borderColor: args.borderColor ?? null,
+							borderColor:
+								args.borderColor ?? list.borderColor ?? null,
 							cardNumber: null,
 							comments: [],
 							checklists: [],
@@ -217,7 +242,9 @@ export function NewCardForm({
 					isCreateAnotherEnabled,
 					position,
 					dueDate: null,
-					borderColor: DEFAULT_CARD_BORDER_COLOR,
+					borderColor:
+						selectedBoardList?.borderColor ??
+						DEFAULT_CARD_BORDER_COLOR,
 				};
 				reset(newFormState);
 				saveFormState(newFormState);
@@ -278,7 +305,7 @@ export function NewCardForm({
 			memberPublicIds: data.memberPublicIds,
 			position: data.position,
 			dueDate: data.dueDate ?? null,
-			borderColor: data.borderColor ?? DEFAULT_CARD_BORDER_COLOR,
+			borderColor: data.borderColor,
 		});
 	};
 
@@ -312,7 +339,7 @@ export function NewCardForm({
 		}
 	};
 
-	const selectedList = formattedLists.find((item) => item.selected);
+	const selectedListItem = formattedLists.find((item) => item.selected);
 
 	return (
 		<form onSubmit={handleSubmit(onSubmit)}>
@@ -385,12 +412,7 @@ export function NewCardForm({
 					<div className="w-fit">
 						<CardBorderColorPicker
 							value={borderColor ?? null}
-							onChange={(value) =>
-								setValue(
-									'borderColor',
-									value ?? DEFAULT_CARD_BORDER_COLOR,
-								)
-							}
+							onChange={(value) => setValue('borderColor', value)}
 						/>
 					</div>
 					<div className="w-fit">
@@ -401,7 +423,7 @@ export function NewCardForm({
 							}
 						>
 							<div className="flex h-full w-full items-center rounded-[5px] border-[1px] border-light-600 bg-light-200 px-2 py-1 text-left text-xs text-light-800 hover:bg-light-300 dark:border-dark-600 dark:bg-dark-400 dark:text-dark-1000 dark:hover:bg-dark-500">
-								{selectedList?.value}
+								{selectedListItem?.value}
 							</div>
 						</CheckboxDropdown>
 					</div>

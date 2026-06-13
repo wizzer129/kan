@@ -1,9 +1,9 @@
 import { t } from '@lingui/core/macro';
 import {
-	HiOutlineCog6Tooth,
 	HiHashtag,
 	HiLink,
 	HiOutlineCheckCircle,
+	HiOutlineCog6Tooth,
 	HiOutlineDocumentDuplicate,
 	HiOutlineSwatch,
 	HiOutlineTrash,

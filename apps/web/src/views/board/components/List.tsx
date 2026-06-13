@@ -6,6 +6,7 @@ import {
 	HiEllipsisHorizontal,
 	HiOutlinePlusSmall,
 	HiOutlineSquaresPlus,
+	HiOutlineSwatch,
 	HiOutlineTrash,
 } from 'react-icons/hi2';
 
@@ -27,6 +28,7 @@ interface ListProps {
 interface List {
 	publicId: string;
 	name: string;
+	borderColor?: string | null;
 	createdBy?: string | null;
 }
 
@@ -95,9 +97,10 @@ export default function List({
 					ref={provided.innerRef}
 					{...provided.draggableProps}
 					{...provided.dragHandleProps}
-					className="dark-text-dark-1000 mr-5 flex h-fit max-h-[calc(100%-env(safe-area-inset-bottom)-2rem)] min-w-[18rem] max-w-[18rem] flex-col overflow-hidden rounded-md border border-light-400 bg-light-100 py-2 pl-2 pr-1 text-neutral-900 dark:border-dark-300 dark:bg-dark-100"
+					className="dark-text-dark-1000 mr-5 flex h-fit max-h-[calc(100%-env(safe-area-inset-bottom)-2rem)] min-w-[18rem] max-w-[18rem] flex-col overflow-visible rounded-md border border-light-400 bg-light-100 py-2 pl-2 pr-1 text-neutral-900 dark:border-dark-300 dark:bg-dark-100"
+					style={{ borderColor: list.borderColor ?? undefined }}
 				>
-					<div className="mb-2 flex justify-between">
+					<div className="mb-2 flex justify-between overflow-visible">
 						<form
 							onSubmit={handleSubmit(onSubmit)}
 							className="w-full focus-visible:outline-none"
@@ -111,7 +114,7 @@ export default function List({
 								className="w-full border-0 bg-transparent px-4 pt-1 text-sm font-medium text-neutral-900 focus:ring-0 focus-visible:outline-none dark:text-dark-1000"
 							/>
 						</form>
-						<div className="flex items-center">
+						<div className="flex items-center overflow-visible">
 							<Tooltip
 								content={
 									!canCreateCard
@@ -148,6 +151,24 @@ export default function List({
 												},
 											]
 										: []),
+									...(canEdit
+										? [
+												{
+													label: t`Edit border color`,
+													action: () => {
+														setSelectedPublicListId(
+															list.publicId,
+														);
+														openModal(
+															'LIST_BORDER_COLOR',
+														);
+													},
+													icon: (
+														<HiOutlineSwatch className="h-[18px] w-[18px] text-dark-900" />
+													),
+												},
+											]
+										: []),
 									...(canDeleteList || isCreator
 										? [
 												{
@@ -166,7 +187,7 @@ export default function List({
 								}
 
 								return (
-									<div className="relative mr-1 inline-block">
+									<div className="relative mr-1 inline-block overflow-visible">
 										<Dropdown items={dropdownItems}>
 											<HiEllipsisHorizontal className="h-5 w-5 text-dark-900" />
 										</Dropdown>
@@ -175,7 +196,9 @@ export default function List({
 							})()}
 						</div>
 					</div>
-					{children}
+					<div className="min-h-0 flex-1 overflow-hidden">
+						{children}
+					</div>
 				</div>
 			)}
 		</Draggable>

@@ -1,0 +1,1 @@
+ALTER TABLE "list" ADD COLUMN IF NOT EXISTS "borderColor" text;

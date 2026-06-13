@@ -95,7 +95,10 @@ export const cardRouter = createTRPCRouter({
 				workspaceId: list.workspaceId,
 				position: input.position,
 				dueDate: input.dueDate ?? null,
-				borderColor: input.borderColor ?? null,
+				borderColor:
+					input.borderColor !== undefined
+						? input.borderColor
+						: (list.borderColor ?? null),
 			});
 
 			const newCardId = newCard.id;

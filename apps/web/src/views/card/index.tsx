@@ -47,13 +47,21 @@ interface FormValues {
 	description: string;
 }
 
-export function CardRightPanel({ isTemplate, cardPublicId: cardPublicIdProp }: { isTemplate?: boolean; cardPublicId?: string }) {
+export function CardRightPanel({
+	isTemplate,
+	cardPublicId: cardPublicIdProp,
+}: {
+	isTemplate?: boolean;
+	cardPublicId?: string;
+}) {
 	const router = useRouter();
 	const { canEditCard } = usePermissions();
 	const { data: session } = authClient.useSession();
-	const cardId = cardPublicIdProp ?? (Array.isArray(router.query.cardId)
-		? router.query.cardId[0]
-		: router.query.cardId);
+	const cardId =
+		cardPublicIdProp ??
+		(Array.isArray(router.query.cardId)
+			? router.query.cardId[0]
+			: router.query.cardId);
 
 	const { data: card } = api.card.byId.useQuery(
 		{ cardPublicId: cardId ?? '' },
@@ -165,7 +173,17 @@ export function CardRightPanel({ isTemplate, cardPublicId: cardPublicIdProp }: {
 	);
 }
 
-export default function CardPage({ isTemplate, cardPublicId: cardPublicIdProp, onClose, onOpenDetails }: { isTemplate?: boolean; cardPublicId?: string; onClose?: () => void; onOpenDetails?: () => void }) {
+export default function CardPage({
+	isTemplate,
+	cardPublicId: cardPublicIdProp,
+	onClose,
+	onOpenDetails,
+}: {
+	isTemplate?: boolean;
+	cardPublicId?: string;
+	onClose?: () => void;
+	onOpenDetails?: () => void;
+}) {
 	const router = useRouter();
 	const utils = api.useUtils();
 	const {
@@ -185,9 +203,11 @@ export default function CardPage({ isTemplate, cardPublicId: cardPublicIdProp, o
 		string | null
 	>(null);
 
-	const cardId = cardPublicIdProp ?? (Array.isArray(router.query.cardId)
-		? router.query.cardId[0]
-		: router.query.cardId);
+	const cardId =
+		cardPublicIdProp ??
+		(Array.isArray(router.query.cardId)
+			? router.query.cardId[0]
+			: router.query.cardId);
 
 	const {
 		data: card,
@@ -331,7 +351,7 @@ export default function CardPage({ isTemplate, cardPublicId: cardPublicIdProp, o
 				style={{ borderLeftColor: card?.borderColor ?? undefined }}
 			>
 				{/* Full-width top strip with board link and dropdown */}
-				<div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 pl-4 pr-[max(0.5rem,env(safe-area-inset-right))] py-2 dark:border-dark-300 dark:bg-dark-50 md:px-8">
+				<div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 py-2 pl-4 pr-[max(0.5rem,env(safe-area-inset-right))] dark:border-dark-300 dark:bg-dark-50 md:px-8">
 					{!card && isLoading && (
 						<div className="flex space-x-2">
 							<div className="h-[1.5rem] w-[150px] animate-pulse rounded-[5px] bg-light-300 dark:bg-dark-300" />
@@ -339,7 +359,7 @@ export default function CardPage({ isTemplate, cardPublicId: cardPublicIdProp, o
 					)}
 					{card && (
 						<>
-							<div className="min-w-0 flex flex-1 items-center gap-1 overflow-hidden">
+							<div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden">
 								<div className="hidden min-w-0 items-center gap-1 overflow-hidden md:flex">
 									<Link
 										className="whitespace-nowrapleading-[1.5rem] truncate text-sm font-bold text-light-900 dark:text-dark-950"
@@ -394,24 +414,24 @@ export default function CardPage({ isTemplate, cardPublicId: cardPublicIdProp, o
 									listPublicId={card?.list.publicId}
 									cardIndex={card?.index}
 								/>
-							{onClose ? (
-								<button
-									type="button"
-									onClick={onClose}
-									className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
-									aria-label={t`Close`}
-								>
-									<HiXMark className="h-4 w-4" />
-								</button>
-							) : (
-								<Link
-									href={`/${isTemplate ? 'templates' : 'boards'}/${boardId}`}
-									className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
-									aria-label={t`Close`}
-								>
-									<HiXMark className="h-4 w-4" />
-								</Link>
-							)}
+								{onClose ? (
+									<button
+										type="button"
+										onClick={onClose}
+										className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
+										aria-label={t`Close`}
+									>
+										<HiXMark className="h-4 w-4" />
+									</button>
+								) : (
+									<Link
+										href={`/${isTemplate ? 'templates' : 'boards'}/${boardId}`}
+										className="flex h-7 w-7 items-center justify-center rounded-[5px] text-light-900 hover:bg-light-200 dark:text-dark-900 dark:hover:bg-dark-200"
+										aria-label={t`Close`}
+									>
+										<HiXMark className="h-4 w-4" />
+									</Link>
+								)}
 							</div>
 						</>
 					)}

@@ -17,6 +17,7 @@ export const boardListItemSchema = z.object({
 		z.object({
 			publicId: z.string(),
 			name: z.string(),
+			borderColor: z.string().nullable(),
 			index: z.number(),
 		}),
 	),
@@ -69,6 +70,7 @@ export const boardDetailSchema = z.object({
 		z.object({
 			publicId: z.string(),
 			name: z.string(),
+			borderColor: z.string().nullable(),
 			index: z.number(),
 			cards: z.array(boardDetailCardSchema),
 		}),
@@ -77,6 +79,7 @@ export const boardDetailSchema = z.object({
 		z.object({
 			publicId: z.string(),
 			name: z.string(),
+			borderColor: z.string().nullable(),
 		}),
 	),
 });
@@ -111,6 +114,7 @@ export const boardBySlugSchema = z.object({
 		z.object({
 			publicId: z.string(),
 			name: z.string(),
+			borderColor: z.string().nullable(),
 			index: z.number(),
 			cards: z.array(boardSlugCardSchema),
 		}),
@@ -119,6 +123,7 @@ export const boardBySlugSchema = z.object({
 		z.object({
 			publicId: z.string(),
 			name: z.string(),
+			borderColor: z.string().nullable(),
 		}),
 	),
 });

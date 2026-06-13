@@ -19,6 +19,7 @@ export const create = async (
 		name: string;
 		createdBy: string;
 		boardId: number;
+		borderColor?: string | null;
 		importId?: number;
 	},
 ) => {
@@ -43,6 +44,7 @@ export const create = async (
 			.values({
 				publicId: generateUID(),
 				name: listInput.name,
+				borderColor: listInput.borderColor ?? null,
 				createdBy: listInput.createdBy,
 				boardId: listInput.boardId,
 				index,
@@ -53,6 +55,7 @@ export const create = async (
 				publicId: lists.publicId,
 				boardId: lists.boardId,
 				name: lists.name,
+				borderColor: lists.borderColor,
 			});
 
 		if (!result)
@@ -120,6 +123,7 @@ export const bulkCreate = async (
 		createdBy: string;
 		boardId: number;
 		index: number;
+		borderColor?: string | null;
 		importId?: number;
 	}[],
 ) => {
@@ -140,6 +144,7 @@ export const bulkCreate = async (
 			createdBy: string;
 			boardId: number;
 			index: number;
+			borderColor?: string | null;
 			importId?: number;
 		}[] = [];
 
@@ -163,6 +168,7 @@ export const bulkCreate = async (
 					createdBy: it.createdBy,
 					boardId: it.boardId,
 					index: nextIndex++,
+					borderColor: it.borderColor ?? null,
 					importId: it.importId,
 				});
 			}
@@ -228,6 +234,7 @@ export const getByPublicId = async (db: dbClient, listPublicId: string) => {
 			id: true,
 			publicId: true,
 			name: true,
+			borderColor: true,
 			boardId: true,
 			index: true,
 		},
@@ -259,21 +266,32 @@ export const getWithCardsByPublicId = async (
 export const update = async (
 	db: dbClient,
 	listInput: {
-		name: string;
+		name?: string;
+		borderColor?: string | null;
 	},
 	args: {
 		listPublicId: string;
 	},
-) => {
+): Promise<
+	{ publicId: string; name: string; borderColor: string | null } | undefined
+> => {
 	const [result] = await db
 		.update(lists)
-		.set({ name: listInput.name })
+		.set({
+			name: listInput.name,
+			borderColor:
+				listInput.borderColor !== undefined
+					? listInput.borderColor
+					: undefined,
+			updatedAt: new Date(),
+		})
 		.where(
 			and(eq(lists.publicId, args.listPublicId), isNull(lists.deletedAt)),
 		)
 		.returning({
 			publicId: lists.publicId,
 			name: lists.name,
+			borderColor: lists.borderColor,
 		});
 
 	return result;
@@ -285,7 +303,9 @@ export const reorder = async (
 		listPublicId: string;
 		newIndex: number;
 	},
-) => {
+): Promise<
+	{ publicId: string; name: string; borderColor: string | null } | undefined
+> => {
 	return db.transaction(async (tx) => {
 		const list = await tx.query.lists.findFirst({
 			columns: {
@@ -365,6 +385,7 @@ export const reorder = async (
 			columns: {
 				publicId: true,
 				name: true,
+				borderColor: true,
 			},
 			where: eq(lists.publicId, args.listPublicId),
 		});
@@ -449,7 +470,7 @@ export const getWorkspaceAndListIdByListPublicId = async (
 	listPublicId: string,
 ) => {
 	const result = await db.query.lists.findFirst({
-		columns: { id: true, name: true, createdBy: true },
+		columns: { id: true, name: true, borderColor: true, createdBy: true },
 		where: and(eq(lists.publicId, listPublicId), isNull(lists.deletedAt)),
 		with: {
 			board: {
@@ -467,6 +488,7 @@ export const getWorkspaceAndListIdByListPublicId = async (
 				id: result.id,
 				publicId: listPublicId,
 				name: result.name,
+				borderColor: result.borderColor,
 				createdBy: result.createdBy,
 				workspaceId: result.board.workspaceId,
 				boardPublicId: result.board.publicId,

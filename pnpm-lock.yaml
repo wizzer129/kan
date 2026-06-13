@@ -486,14 +486,17 @@ importers:
       '@novu/api':
         specifier: ^3.11.0
         version: 3.11.0
+      '@radix-ui/colors':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@react-email/components':
-        specifier: ^1.0.1
+        specifier: 1.0.1
         version: 1.0.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       nodemailer:
-        specifier: ^7.0.3
-        version: 7.0.6
+        specifier: 7.0.3
+        version: 7.0.3
       react-email:
-        specifier: ^5.0.6
+        specifier: 5.0.6
         version: 5.0.6
     devDependencies:
       '@kan/eslint-config':
@@ -3061,6 +3064,9 @@ packages:
   '@posthog/core@1.0.2':
     resolution: {integrity: sha512-hWk3rUtJl2crQK0WNmwg13n82hnTwB99BT99/XI5gZSvIlYZ1TPmMZE8H2dhJJ98J/rm9vYJ/UXNzw3RV5HTpQ==}
 
+  '@radix-ui/colors@3.0.0':
+    resolution: {integrity: sha512-FUOsGBkHrYJwCSEtWRCIfQbZG7q1e6DgxCIOe1SUQzDe/7rXXeA47s8yCn6fuTNQAj1Zq4oTFi9Yjp3wzElcxg==}
+
   '@react-aria/focus@3.21.1':
     resolution: {integrity: sha512-hmH1IhHlcQ2lSIxmki1biWzMbGgnhdxJUM0MFfzc71Rv6YAzhlx4kX3GYn4VNcjCeb6cdPv4RZ5vunV4kgMZYQ==}
     peerDependencies:
@@ -4191,9 +4197,6 @@ packages:
 
   '@types/node@20.19.26':
     resolution: {integrity: sha512-0l6cjgF0XnihUpndDhk+nyD3exio3iKaYROSgvh/qSevPXax3L8p5DBRFjbvalnwatGgHEQn2R88y2fA3g4irg==}
-
-  '@types/node@24.10.2':
-    resolution: {integrity: sha512-WOhQTZ4G8xZ1tjJTvKOpyEVSGgOTvJAfDK3FNFgELyaTpzhdgHVHeqW8V+UJvzF5BT+/B54T/1S2K6gd9c7bbA==}
 
   '@types/node@25.0.0':
     resolution: {integrity: sha512-rl78HwuZlaDIUSeUKkmogkhebA+8K1Hy7tddZuJ3D0xV8pZSfsYGTsliGUol1JPzu9EKnTxPC4L1fiWouStRew==}
@@ -7013,8 +7016,8 @@ packages:
   node-releases@2.0.27:
     resolution: {integrity: sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==}
 
-  nodemailer@7.0.6:
-    resolution: {integrity: sha512-F44uVzgwo49xboqbFgBGkRaiMgtoBrBEWCVincJPK9+S9Adkzt/wXCLKbf7dxucmxfTI5gHGB+bEmdyzN6QKjw==}
+  nodemailer@7.0.3:
+    resolution: {integrity: sha512-Ajq6Sz1x7cIK3pN6KesGTah+1gnwMnx5gKl3piQlQQE/PwyJ4Mbc8is2psWYxK3RJTVeqsDaCv8ZzXLCDHMTZw==}
     engines: {node: '>=6.0.0'}
 
   normalize-path@3.0.0:
@@ -9563,7 +9566,7 @@ snapshots:
   '@babel/helper-module-imports@7.27.1':
     dependencies:
       '@babel/traverse': 7.28.5
-      '@babel/types': 7.28.2
+      '@babel/types': 7.28.5
     transitivePeerDependencies:
       - supports-color
 
@@ -11435,6 +11438,8 @@ snapshots:
 
   '@posthog/core@1.0.2': {}
 
+  '@radix-ui/colors@3.0.0': {}
+
   '@react-aria/focus@3.21.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@react-aria/interactions': 3.25.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -12609,7 +12614,7 @@ snapshots:
 
   '@types/cors@2.8.19':
     dependencies:
-      '@types/node': 24.10.2
+      '@types/node': 20.19.26
 
   '@types/debug@4.1.12':
     dependencies:
@@ -12711,10 +12716,6 @@ snapshots:
   '@types/node@20.19.26':
     dependencies:
       undici-types: 6.21.0
-
-  '@types/node@24.10.2':
-    dependencies:
-      undici-types: 7.16.0
 
   '@types/node@25.0.0':
     dependencies:
@@ -13898,7 +13899,7 @@ snapshots:
   engine.io@6.6.4:
     dependencies:
       '@types/cors': 2.8.19
-      '@types/node': 24.10.2
+      '@types/node': 20.19.26
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.7.2
@@ -16234,7 +16235,7 @@ snapshots:
 
   node-releases@2.0.27: {}
 
-  nodemailer@7.0.6: {}
+  nodemailer@7.0.3: {}
 
   normalize-path@3.0.0: {}
 

@@ -1,6 +1,5 @@
 import { Dialog, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
 import CardPage, { CardRightPanel } from '~/views/card';
 
@@ -62,7 +61,10 @@ export function CardDetailModal({ cardPublicId, isTemplate, onClose }: Props) {
 										/>
 									</div>
 
-									<Transition show={isMobileDetailsOpen} as={Fragment}>
+									<Transition
+										show={isMobileDetailsOpen}
+										as={Fragment}
+									>
 										<Transition.Child
 											as={Fragment}
 											enter="ease-out duration-200"
@@ -74,7 +76,11 @@ export function CardDetailModal({ cardPublicId, isTemplate, onClose }: Props) {
 										>
 											<div
 												className="absolute inset-0 z-20 bg-black/30 md:hidden"
-												onClick={() => setIsMobileDetailsOpen(false)}
+												onClick={() =>
+													setIsMobileDetailsOpen(
+														false,
+													)
+												}
 											/>
 										</Transition.Child>
 										<Transition.Child
