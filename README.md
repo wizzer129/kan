@@ -45,6 +45,10 @@ See our [roadmap](https://kan.bn/kan/roadmap) for upcoming features.
 - [Drizzle ORM](https://orm.drizzle.team/?ref=kan.bn)
 - [React Email](https://react.email/?ref=kan.bn)
 
+## Database
+
+See [DATABASE.md](./DATABASE.md) for a schema overview and ERD.
+
 ## Self Hosting 🐳
 
 ### One-click Deployments
