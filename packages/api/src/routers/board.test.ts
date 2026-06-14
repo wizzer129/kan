@@ -42,9 +42,7 @@ const mockBoardCreate = boardRepo.create as ReturnType<typeof vi.fn>;
 const mockBoardUpdate = boardRepo.update as ReturnType<typeof vi.fn>;
 const mockIsSlugUnique = boardRepo.isSlugUnique as ReturnType<typeof vi.fn>;
 const mockGetWorkspaceAndBoardIdByBoardPublicId =
-	boardRepo.getWorkspaceAndBoardIdByBoardPublicId as ReturnType<
-		typeof vi.fn
-	>;
+	boardRepo.getWorkspaceAndBoardIdByBoardPublicId as ReturnType<typeof vi.fn>;
 const mockWorkspaceGetByPublicId = workspaceRepo.getByPublicId as ReturnType<
 	typeof vi.fn
 >;
