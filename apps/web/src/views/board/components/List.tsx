@@ -4,6 +4,7 @@ import { t } from '@lingui/core/macro';
 import { useForm } from 'react-hook-form';
 import {
 	HiEllipsisHorizontal,
+	HiMiniArrowsRightLeft,
 	HiOutlinePlusSmall,
 	HiOutlineSquaresPlus,
 	HiOutlineSwatch,
@@ -97,8 +98,11 @@ export default function List({
 					ref={provided.innerRef}
 					{...provided.draggableProps}
 					{...provided.dragHandleProps}
-					className="dark-text-dark-1000 mr-5 flex h-fit max-h-[calc(100%-env(safe-area-inset-bottom)-2rem)] min-w-[18rem] max-w-[18rem] flex-col overflow-visible rounded-md border border-light-400 bg-light-100 py-2 pl-2 pr-1 text-neutral-900 dark:border-dark-300 dark:bg-dark-100"
-					style={{ borderColor: list.borderColor ?? undefined }}
+					className="dark-text-dark-1000 relative mr-5 flex h-fit max-h-[calc(100%-env(safe-area-inset-bottom)-2rem)] min-w-[18rem] max-w-[18rem] shrink-0 flex-col overflow-visible rounded-md border border-light-400 bg-light-100 py-2 pl-2 pr-1 text-neutral-900 dark:border-dark-300 dark:bg-dark-100"
+					style={{
+						...provided.draggableProps.style,
+						borderColor: list.borderColor ?? undefined,
+					}}
 				>
 					<div className="mb-2 flex justify-between overflow-visible">
 						<form
@@ -199,6 +203,16 @@ export default function List({
 					<div className="min-h-0 flex-1 overflow-hidden">
 						{children}
 					</div>
+					{canDrag && (
+						<Tooltip content={t`Drag to move list`}>
+							<div className="absolute bottom-1 right-1 z-20 rounded p-1 text-light-700 transition-colors hover:bg-light-300 hover:text-light-900 dark:text-dark-700 dark:hover:bg-dark-200 dark:hover:text-dark-900">
+								<HiMiniArrowsRightLeft
+									className="h-4 w-4 cursor-grab active:cursor-grabbing"
+									aria-hidden="true"
+								/>
+							</div>
+						</Tooltip>
+					)}
 				</div>
 			)}
 		</Draggable>

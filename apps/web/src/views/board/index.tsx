@@ -246,25 +246,29 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 				if (!oldBoard) return oldBoard;
 
 				const updatedLists = Array.from(oldBoard.lists);
-
-				const sourceList = updatedLists.find(
+				const currentIndex = updatedLists.findIndex(
 					(list) => list.publicId === args.listPublicId,
 				);
 
-				const currentIndex = sourceList?.index;
-
-				if (currentIndex === undefined) return oldBoard;
+				if (currentIndex < 0 || args.index === undefined)
+					return oldBoard;
 
 				const removedList = updatedLists.splice(currentIndex, 1)[0];
+				const destinationIndex = Math.max(
+					0,
+					Math.min(args.index, updatedLists.length),
+				);
 
-				if (removedList && args.index !== undefined) {
-					updatedLists.splice(args.index, 0, removedList);
+				if (removedList) {
+					updatedLists.splice(destinationIndex, 0, removedList);
 
 					return {
 						...oldBoard,
 						lists: updatedLists,
 					};
 				}
+
+				return oldBoard;
 			});
 
 			return { previousState: currentState };
@@ -499,12 +503,19 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 	};
 
 	const onDragEnd = ({
-		source: _source,
+		source,
 		destination,
 		draggableId,
 		type,
 	}: DropResult): void => {
 		if (!destination) {
+			return;
+		}
+
+		if (
+			source.droppableId === destination.droppableId &&
+			source.index === destination.index
+		) {
 			return;
 		}
 
@@ -917,16 +928,15 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 									>
 										{(provided) => (
 											<div
-												className="flex h-full items-start"
+												className="flex h-full w-max flex-nowrap items-start pl-8 pr-3"
 												ref={provided.innerRef}
 												{...provided.droppableProps}
 											>
-												<div className="min-w-[2rem]" />
 												{boardData.lists.map(
 													(list, index) => (
 														<List
 															index={index}
-															key={index}
+															key={list.publicId}
 															list={list}
 															setSelectedPublicListId={(
 																publicListId,
@@ -1098,7 +1108,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 														</List>
 													),
 												)}
-												<div className="min-w-[0.75rem]" />
 												{provided.placeholder}
 											</div>
 										)}
