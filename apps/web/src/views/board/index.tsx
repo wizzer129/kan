@@ -1,19 +1,20 @@
 import type { DropResult } from '@hello-pangea/dnd';
 import { useParams } from 'next/navigation';
 import { useRouter } from 'next/router';
-import { DragDropContext, Draggable } from '@hello-pangea/dnd';
 import { t } from '@lingui/core/macro';
 import { keepPreviousData } from '@tanstack/react-query';
-import { env } from 'next-runtime-env';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
+	HiOutlineBars3CenterLeft,
 	HiOutlinePlusSmall,
 	HiOutlineRectangleStack,
 	HiOutlineSquare3Stack3D,
+	HiOutlineViewColumns,
 } from 'react-icons/hi2';
 
 import type { UpdateBoardInput } from '@kan/api/types';
+import { authClient } from '@kan/auth/client';
 
 import type { CardContextMenuAction } from './components/CardContextMenu';
 import Button from '~/components/Button';
@@ -23,7 +24,6 @@ import Modal from '~/components/modal';
 import { NewWorkspaceForm } from '~/components/NewWorkspaceForm';
 import { PageHead } from '~/components/PageHead';
 import PatternedBackground from '~/components/PatternedBackground';
-import { StrictModeDroppable as Droppable } from '~/components/StrictModeDroppable';
 import { Tooltip } from '~/components/Tooltip';
 import { EditYouTubeModal } from '~/components/YouTubeEmbed/EditYouTubeModal';
 import { useDragToScroll } from '~/hooks/useDragToScroll';
@@ -37,7 +37,7 @@ import { api } from '~/utils/api';
 import { formatToArray } from '~/utils/helpers';
 import { DeleteCardConfirmation } from '~/views/card/components/DeleteCardConfirmation';
 import BoardDropdown from './components/BoardDropdown';
-import Card from './components/Card';
+import BoardKanbanView from './components/BoardKanbanView';
 import { CardBorderColorPicker } from './components/CardBorderColorPicker';
 import { CardContextDueDateModal } from './components/CardContextDueDateModal';
 import { CardContextDuplicateModal } from './components/CardContextDuplicateModal';
@@ -49,15 +49,17 @@ import { CardDetailModal } from './components/CardDetailModal';
 import { DeleteBoardConfirmation } from './components/DeleteBoardConfirmation';
 import { DeleteListConfirmation } from './components/DeleteListConfirmation';
 import Filters from './components/Filters';
-import List from './components/List';
 import { NewCardForm } from './components/NewCardForm';
 import { NewListForm } from './components/NewListForm';
 import { NewTemplateForm } from './components/NewTemplateForm';
 import UpdateBoardSlugButton from './components/UpdateBoardSlugButton';
 import { UpdateBoardSlugForm } from './components/UpdateBoardSlugForm';
+import VerticalBoardListView from './components/VerticalBoardListView';
 import VisibilityButton from './components/VisibilityButton';
 
 type PublicListId = string;
+type BoardViewMode = 'kanban' | 'list';
+const BOARD_VIEW_MODE_STORAGE_KEY = 'kan:board:view-mode';
 
 export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 	const params = useParams() as { boardId: string | string[] } | null;
@@ -79,6 +81,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		string | null
 	>(null);
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
+	const [boardViewMode, setBoardViewMode] = useState<BoardViewMode>('kanban');
+	const hasInitializedBoardViewMode = useRef(false);
+	const hasSkippedInitialBoardViewWrite = useRef(false);
 
 	const [contextMenu, setContextMenu] = useState<{
 		x: number;
@@ -87,12 +92,19 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 	} | null>(null);
 
 	const { ref: scrollRef, onMouseDown } = useDragToScroll({
-		enabled: true,
+		enabled: boardViewMode === 'kanban',
 		direction: 'horizontal',
 	});
 
-	const { canCreateList, canEditList, canEditCard, canEditBoard } =
-		usePermissions();
+	const {
+		canCreateCard,
+		canCreateList,
+		canEditList,
+		canDeleteList,
+		canEditCard,
+		canEditBoard,
+	} = usePermissions();
+	const { data: session } = authClient.useSession();
 
 	const { tooltipContent: createListShortcutTooltipContent } =
 		useKeyboardShortcut({
@@ -154,12 +166,21 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		isSuccess,
 		isLoading: isQueryLoading,
 		error,
+		refetch: refetchBoardQuery,
 	} = api.board.byId.useQuery(queryParams, {
 		enabled: !!boardId,
 		placeholderData: keepPreviousData,
 	});
+	const [localBoardData, setLocalBoardData] =
+		useState<typeof boardData>(undefined);
+	const effectiveBoardData = localBoardData ?? boardData;
 	const boardVisibility: 'private' | 'public' =
 		boardData?.visibility === 'public' ? 'public' : 'private';
+
+	useEffect(() => {
+		if (!boardData) return;
+		setLocalBoardData(boardData);
+	}, [boardData]);
 
 	// Redirect to 404 if board doesn't exist
 	useEffect(() => {
@@ -196,14 +217,44 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
 	const isLoading = isInitialLoading || isQueryLoading;
 
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+
+		const stored = window.localStorage.getItem(BOARD_VIEW_MODE_STORAGE_KEY);
+
+		if (stored === 'kanban' || stored === 'list') {
+			setBoardViewMode(stored);
+		}
+
+		hasInitializedBoardViewMode.current = true;
+	}, []);
+
+	useEffect(() => {
+		if (!hasInitializedBoardViewMode.current) return;
+		if (typeof window === 'undefined') return;
+
+		// Skip the first write after hydration-sync to avoid clobbering
+		// a persisted value with the default pre-sync mode.
+		if (!hasSkippedInitialBoardViewWrite.current) {
+			hasSkippedInitialBoardViewWrite.current = true;
+			return;
+		}
+
+		window.localStorage.setItem(BOARD_VIEW_MODE_STORAGE_KEY, boardViewMode);
+	}, [boardViewMode]);
+
 	useScrollRestore(
 		boardId,
 		scrollRef,
 		router,
-		!isLoading && (boardData?.lists.length ?? 0) > 0,
+		boardViewMode === 'kanban' &&
+			!isLoading &&
+			(effectiveBoardData?.lists.length ?? 0) > 0,
 	);
 
 	useEffect(() => {
+		if (boardViewMode !== 'kanban') return;
+
 		const el = scrollRef.current;
 		if (!el) return;
 		const onWheel = (e: WheelEvent) => {
@@ -234,116 +285,35 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		};
 		el.addEventListener('wheel', onWheel, { passive: false });
 		return () => el.removeEventListener('wheel', onWheel);
-	}, [scrollRef]);
+	}, [scrollRef, boardViewMode]);
 
 	const updateListMutation = api.list.update.useMutation({
-		onMutate: async (args) => {
-			await utils.board.byId.cancel();
-
-			const currentState = utils.board.byId.getData(queryParams);
-
-			utils.board.byId.setData(queryParams, (oldBoard) => {
-				if (!oldBoard) return oldBoard;
-
-				const updatedLists = Array.from(oldBoard.lists);
-				const currentIndex = updatedLists.findIndex(
-					(list) => list.publicId === args.listPublicId,
-				);
-
-				if (currentIndex < 0 || args.index === undefined)
-					return oldBoard;
-
-				const removedList = updatedLists.splice(currentIndex, 1)[0];
-				const destinationIndex = Math.max(
-					0,
-					Math.min(args.index, updatedLists.length),
-				);
-
-				if (removedList) {
-					updatedLists.splice(destinationIndex, 0, removedList);
-
-					return {
-						...oldBoard,
-						lists: updatedLists,
-					};
-				}
-
-				return oldBoard;
-			});
-
-			return { previousState: currentState };
-		},
-		onError: (_error, _newList, context) => {
-			utils.board.byId.setData(queryParams, context?.previousState);
+		onError: async () => {
 			showPopup({
 				header: t`Unable to update list`,
 				message: t`Please try again later, or contact customer support.`,
 				icon: 'error',
 			});
-		},
-		onSettled: async () => {
-			await utils.board.byId.invalidate(queryParams);
+
+			const latest = await refetchBoardQuery();
+			if (latest.data) {
+				setLocalBoardData(latest.data);
+			}
 		},
 	});
 
 	const updateCardMutation = api.card.update.useMutation({
-		onMutate: async (args) => {
-			await utils.board.byId.cancel();
-
-			const currentState = utils.board.byId.getData(queryParams);
-
-			utils.board.byId.setData(queryParams, (oldBoard) => {
-				if (!oldBoard) return oldBoard;
-
-				const updatedLists = Array.from(oldBoard.lists);
-
-				const sourceList = updatedLists.find((list) =>
-					list.cards.some(
-						(card) => card.publicId === args.cardPublicId,
-					),
-				);
-				const destinationList = updatedLists.find(
-					(list) => list.publicId === args.listPublicId,
-				);
-
-				const cardToMove = sourceList?.cards.find(
-					(card) => card.publicId === args.cardPublicId,
-				);
-
-				if (!cardToMove) return oldBoard;
-
-				const removedCard = sourceList?.cards.splice(
-					cardToMove.index,
-					1,
-				)[0];
-
-				if (
-					sourceList &&
-					destinationList &&
-					removedCard &&
-					args.index !== undefined
-				) {
-					destinationList.cards.splice(args.index, 0, removedCard);
-
-					return {
-						...oldBoard,
-						lists: updatedLists,
-					};
-				}
-			});
-
-			return { previousState: currentState };
-		},
-		onError: (_error, _newList, context) => {
-			utils.board.byId.setData(queryParams, context?.previousState);
+		onError: async () => {
 			showPopup({
 				header: t`Unable to update card`,
 				message: t`Please try again later, or contact customer support.`,
 				icon: 'error',
 			});
-		},
-		onSettled: async () => {
-			await utils.board.byId.invalidate(queryParams);
+
+			const latest = await refetchBoardQuery();
+			if (latest.data) {
+				setLocalBoardData(latest.data);
+			}
 		},
 	});
 
@@ -433,6 +403,22 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		setSelectedPublicListId(publicBoardId);
 	};
 
+	const openNewCardForm = (publicListId: string) => {
+		if (!canCreateCard) return;
+		openModal('NEW_CARD');
+		setSelectedPublicListId(publicListId);
+	};
+
+	const openListBorderColorModal = (publicListId: string) => {
+		setSelectedPublicListId(publicListId);
+		openModal('LIST_BORDER_COLOR');
+	};
+
+	const openDeleteListConfirmation = (publicListId: string) => {
+		setSelectedPublicListId(publicListId);
+		openModal('DELETE_LIST');
+	};
+
 	const openCardModal = (publicId: string) => {
 		setSelectedCardPublicId(publicId);
 		void router.push(
@@ -446,6 +432,12 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		setSelectedCardPublicId(null);
 		const { card: _card, ...restQuery } = router.query;
 		void router.push({ query: restQuery }, undefined, { shallow: true });
+	};
+
+	const toggleBoardView = () => {
+		setBoardViewMode((currentMode) =>
+			currentMode === 'kanban' ? 'list' : 'kanban',
+		);
 	};
 
 	const handleCardContextMenuAction = (action: CardContextMenuAction) => {
@@ -519,7 +511,44 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 			return;
 		}
 
-		if (type === 'LIST' && canEditList) {
+		const activeBoardData = localBoardData ?? boardData;
+		if (!activeBoardData) return;
+
+		const draggedList = activeBoardData.lists.find(
+			(list) => list.publicId === draggableId,
+		);
+		const canReorderDraggedList =
+			canEditList ||
+			(!!draggedList?.createdBy &&
+				session?.user.id === draggedList.createdBy);
+
+		if (type === 'LIST' && canReorderDraggedList) {
+			setLocalBoardData((previousBoard) => {
+				const currentBoard = previousBoard ?? boardData;
+				if (!currentBoard) return previousBoard;
+
+				const currentIndex = currentBoard.lists.findIndex(
+					(list) => list.publicId === draggableId,
+				);
+				if (currentIndex < 0) return previousBoard;
+
+				const nextLists = [...currentBoard.lists];
+				const [movedList] = nextLists.splice(currentIndex, 1);
+				if (!movedList) return previousBoard;
+
+				const destinationIndex = Math.max(
+					0,
+					Math.min(destination.index, nextLists.length),
+				);
+
+				nextLists.splice(destinationIndex, 0, movedList);
+
+				return {
+					...currentBoard,
+					lists: nextLists,
+				};
+			});
+
 			updateListMutation.mutate({
 				listPublicId: draggableId,
 				index: destination.index,
@@ -527,6 +556,68 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 		}
 
 		if (type === 'CARD' && canEditCard) {
+			setLocalBoardData((previousBoard) => {
+				const currentBoard = previousBoard ?? boardData;
+				if (!currentBoard) return previousBoard;
+
+				const sourceListIndex = currentBoard.lists.findIndex(
+					(list) => list.publicId === source.droppableId,
+				);
+				const destinationListIndex = currentBoard.lists.findIndex(
+					(list) => list.publicId === destination.droppableId,
+				);
+
+				if (sourceListIndex < 0 || destinationListIndex < 0) {
+					return previousBoard;
+				}
+
+				const nextLists = currentBoard.lists.map((list) => ({
+					...list,
+					cards: [...list.cards],
+				}));
+
+				const nextSourceList = nextLists[sourceListIndex];
+				const nextDestinationList = nextLists[destinationListIndex];
+
+				if (!nextSourceList || !nextDestinationList) {
+					return previousBoard;
+				}
+
+				const sourceCardIndex = nextSourceList.cards.findIndex(
+					(card) => card.publicId === draggableId,
+				);
+				if (sourceCardIndex < 0) {
+					return previousBoard;
+				}
+
+				const [movedCard] = nextSourceList.cards.splice(
+					sourceCardIndex,
+					1,
+				);
+				if (!movedCard) {
+					return previousBoard;
+				}
+
+				const destinationIndex = Math.max(
+					0,
+					Math.min(
+						destination.index,
+						nextDestinationList.cards.length,
+					),
+				);
+
+				nextDestinationList.cards.splice(
+					destinationIndex,
+					0,
+					movedCard,
+				);
+
+				return {
+					...currentBoard,
+					lists: nextLists,
+				};
+			});
+
 			updateCardMutation.mutate({
 				cardPublicId: draggableId,
 
@@ -820,25 +911,50 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 									visibility={boardVisibility}
 									canEdit={canEditBoard}
 								/>
+								<Tooltip
+									content={
+										boardViewMode === 'kanban'
+											? t`Switch to vertical list view`
+											: t`Switch to kanban view`
+									}
+								>
+									<Button
+										variant="secondary"
+										iconOnly
+										iconLeft={
+											boardViewMode === 'kanban' ? (
+												<HiOutlineBars3CenterLeft className="h-5 w-5" />
+											) : (
+												<HiOutlineViewColumns className="h-5 w-5" />
+											)
+										}
+										onClick={toggleBoardView}
+										aria-label={
+											boardViewMode === 'kanban'
+												? t`Switch to vertical list view`
+												: t`Switch to kanban view`
+										}
+									/>
+								</Tooltip>
+								{effectiveBoardData && (
+									<Filters
+										labels={effectiveBoardData.labels}
+										members={effectiveBoardData.workspace.members.filter(
+											(member) => member.user !== null,
+										)}
+										lists={effectiveBoardData.allLists}
+										position="left"
+										isLoading={!effectiveBoardData}
+									/>
+								)}
 								<VisibilityButton
 									visibility={boardVisibility}
 									boardPublicId={boardId ?? ''}
-									boardSlug={boardData?.slug ?? ''}
+									boardSlug={effectiveBoardData?.slug ?? ''}
 									queryParams={queryParams}
-									isLoading={!boardData}
+									isLoading={!effectiveBoardData}
 									isAdmin={workspace.role === 'admin'}
 								/>
-								{boardData && (
-									<Filters
-										labels={boardData.labels}
-										members={boardData.workspace.members.filter(
-											(member) => member.user !== null,
-										)}
-										lists={boardData.allLists}
-										position="left"
-										isLoading={!boardData}
-									/>
-								)}
 							</>
 						)}
 						<Tooltip
@@ -877,8 +993,14 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 
 				<div
 					ref={scrollRef}
-					onMouseDown={onMouseDown}
-					className={`scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] z-0 min-h-0 flex-1 overflow-y-hidden overflow-x-scroll overscroll-contain scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300`}
+					onMouseDown={
+						boardViewMode === 'kanban' ? onMouseDown : undefined
+					}
+					className={`z-0 min-h-0 flex-1 ${
+						boardViewMode === 'kanban'
+							? 'scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] overflow-y-hidden overflow-x-scroll overscroll-contain scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300'
+							: ''
+					}`}
 				>
 					{isLoading ? (
 						<div className="ml-[2rem] flex">
@@ -886,9 +1008,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 							<div className="0 mr-5 h-[275px] w-[18rem] animate-pulse rounded-md bg-light-200 dark:bg-dark-100" />
 							<div className="0 mr-5 h-[375px] w-[18rem] animate-pulse rounded-md bg-light-200 dark:bg-dark-100" />
 						</div>
-					) : boardData ? (
+					) : effectiveBoardData ? (
 						<>
-							{boardData.lists.length === 0 ? (
+							{effectiveBoardData.lists.length === 0 ? (
 								<div className="z-10 flex h-full w-full flex-col items-center justify-center space-y-8 pb-[150px]">
 									<div className="flex flex-col items-center">
 										<HiOutlineSquare3Stack3D className="h-10 w-10 text-light-800 dark:text-dark-800" />
@@ -919,200 +1041,37 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
 										</Button>
 									</Tooltip>
 								</div>
+							) : boardViewMode === 'kanban' ? (
+								<BoardKanbanView
+									boardData={effectiveBoardData}
+									canEditCard={!!canEditCard}
+									onDragEnd={onDragEnd}
+									onOpenCard={openCardModal}
+									onSetContextMenu={setContextMenu}
+									setSelectedPublicListId={
+										setSelectedPublicListId
+									}
+								/>
 							) : (
-								<DragDropContext onDragEnd={onDragEnd}>
-									<Droppable
-										droppableId="all-lists"
-										direction="horizontal"
-										type="LIST"
-									>
-										{(provided) => (
-											<div
-												className="flex h-full w-max flex-nowrap items-start pl-8 pr-3"
-												ref={provided.innerRef}
-												{...provided.droppableProps}
-											>
-												{boardData.lists.map(
-													(list, index) => (
-														<List
-															index={index}
-															key={list.publicId}
-															list={list}
-															setSelectedPublicListId={(
-																publicListId,
-															) =>
-																setSelectedPublicListId(
-																	publicListId,
-																)
-															}
-														>
-															<Droppable
-																droppableId={`${list.publicId}`}
-																type="CARD"
-															>
-																{(provided) => (
-																	<div
-																		ref={
-																			provided.innerRef
-																		}
-																		{...provided.droppableProps}
-																		data-board-list-scroll="true"
-																		className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] z-10 min-h-[2rem] flex-1 overflow-y-auto pr-1 scrollbar dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600"
-																	>
-																		{list.cards.map(
-																			(
-																				card,
-																				index,
-																			) => (
-																				<Draggable
-																					key={
-																						card.publicId
-																					}
-																					draggableId={
-																						card.publicId
-																					}
-																					index={
-																						index
-																					}
-																					isDragDisabled={
-																						!canEditCard
-																					}
-																				>
-																					{(
-																						provided,
-																					) => (
-																						<div
-																							onClick={() => {
-																								if (
-																									!card.publicId.startsWith(
-																										'PLACEHOLDER',
-																									)
-																								)
-																									openCardModal(
-																										card.publicId,
-																									);
-																							}}
-																							onContextMenu={(
-																								e,
-																							) => {
-																								if (
-																									card.publicId.startsWith(
-																										'PLACEHOLDER',
-																									) ||
-																									env(
-																										'NEXT_PUBLIC_KAN_ENV',
-																									) ===
-																										'cloud'
-																								)
-																									return;
-																								e.preventDefault();
-																								setContextMenu(
-																									{
-																										x: e.clientX,
-																										y: e.clientY,
-																										cardPublicId:
-																											card.publicId,
-																									},
-																								);
-																							}}
-																							key={
-																								card.publicId
-																							}
-																							role="button"
-																							tabIndex={
-																								0
-																							}
-																							onKeyDown={(
-																								e,
-																							) => {
-																								if (
-																									e.key ===
-																										'Enter' ||
-																									e.key ===
-																										' '
-																								) {
-																									if (
-																										!card.publicId.startsWith(
-																											'PLACEHOLDER',
-																										)
-																									)
-																										openCardModal(
-																											card.publicId,
-																										);
-																								}
-																							}}
-																							className={`mb-2 flex cursor-pointer flex-col ${
-																								card.publicId.startsWith(
-																									'PLACEHOLDER',
-																								)
-																									? 'pointer-events-none'
-																									: ''
-																							}`}
-																							ref={
-																								provided.innerRef
-																							}
-																							{...provided.draggableProps}
-																							{...provided.dragHandleProps}
-																						>
-																							<Card
-																								title={
-																									card.title
-																								}
-																								ticketNumber={
-																									card.cardNumber !=
-																									null
-																										? `${boardData.workspace.cardPrefix}-${card.cardNumber}`
-																										: null
-																								}
-																								borderColor={
-																									card.borderColor ??
-																									null
-																								}
-																								labels={
-																									card.labels
-																								}
-																								members={
-																									card.members
-																								}
-																								checklists={
-																									card.checklists ??
-																									[]
-																								}
-																								description={
-																									card.description ??
-																									null
-																								}
-																								comments={
-																									card.comments ??
-																									[]
-																								}
-																								attachments={
-																									card.attachments
-																								}
-																								dueDate={
-																									card.dueDate ??
-																									null
-																								}
-																							/>
-																						</div>
-																					)}
-																				</Draggable>
-																			),
-																		)}
-																		{
-																			provided.placeholder
-																		}
-																	</div>
-																)}
-															</Droppable>
-														</List>
-													),
-												)}
-												{provided.placeholder}
-											</div>
-										)}
-									</Droppable>
-								</DragDropContext>
+								<VerticalBoardListView
+									lists={effectiveBoardData.lists}
+									cardPrefix={
+										effectiveBoardData.workspace.cardPrefix
+									}
+									onOpenCard={openCardModal}
+									onOpenNewCardForm={openNewCardForm}
+									onOpenListBorderColor={
+										openListBorderColorModal
+									}
+									onOpenDeleteListConfirmation={
+										openDeleteListConfirmation
+									}
+									onDragEnd={onDragEnd}
+									canCreateCard={!!canCreateCard}
+									canEditList={!!canEditList}
+									canDeleteList={!!canDeleteList}
+									canEditCard={!!canEditCard}
+								/>
 							)}
 						</>
 					) : null}

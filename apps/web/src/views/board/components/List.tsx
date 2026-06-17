@@ -3,21 +3,17 @@ import { Draggable } from '@hello-pangea/dnd';
 import { t } from '@lingui/core/macro';
 import { useForm } from 'react-hook-form';
 import {
-	HiEllipsisHorizontal,
 	HiMiniArrowsRightLeft,
 	HiOutlinePlusSmall,
-	HiOutlineSquaresPlus,
-	HiOutlineSwatch,
-	HiOutlineTrash,
 } from 'react-icons/hi2';
 
 import { authClient } from '@kan/auth/client';
 
-import Dropdown from '~/components/Dropdown';
 import { Tooltip } from '~/components/Tooltip';
 import { usePermissions } from '~/hooks/usePermissions';
 import { useModal } from '~/providers/modal';
 import { api } from '~/utils/api';
+import ListDropdown from './ListDropdown';
 
 interface ListProps {
 	children: ReactNode;
@@ -98,7 +94,7 @@ export default function List({
 					ref={provided.innerRef}
 					{...provided.draggableProps}
 					{...provided.dragHandleProps}
-					className="dark-text-dark-1000 relative mr-5 flex h-fit max-h-[calc(100%-env(safe-area-inset-bottom)-2rem)] min-w-[18rem] max-w-[18rem] shrink-0 flex-col overflow-visible rounded-md border border-light-400 bg-light-100 py-2 pl-2 pr-1 text-neutral-900 dark:border-dark-300 dark:bg-dark-100"
+					className="dark-text-dark-1000 relative mr-5 flex h-fit min-w-[18rem] max-w-[18rem] shrink-0 flex-col overflow-visible rounded-md border border-light-400 bg-light-100 pb-7 pl-2 pr-1 pt-2 text-neutral-900 dark:border-dark-300 dark:bg-dark-100"
 					style={{
 						...provided.draggableProps.style,
 						borderColor: list.borderColor ?? undefined,
@@ -139,68 +135,20 @@ export default function List({
 									/>
 								</button>
 							</Tooltip>
-							{(() => {
-								const dropdownItems = [
-									...(canCreateCard
-										? [
-												{
-													label: t`Add a card`,
-													action: () =>
-														openNewCardForm(
-															list.publicId,
-														),
-													icon: (
-														<HiOutlineSquaresPlus className="h-[18px] w-[18px] text-dark-900" />
-													),
-												},
-											]
-										: []),
-									...(canEdit
-										? [
-												{
-													label: t`Edit border color`,
-													action: () => {
-														setSelectedPublicListId(
-															list.publicId,
-														);
-														openModal(
-															'LIST_BORDER_COLOR',
-														);
-													},
-													icon: (
-														<HiOutlineSwatch className="h-[18px] w-[18px] text-dark-900" />
-													),
-												},
-											]
-										: []),
-									...(canDeleteList || isCreator
-										? [
-												{
-													label: t`Delete list`,
-													action: handleOpenDeleteListConfirmation,
-													icon: (
-														<HiOutlineTrash className="h-[18px] w-[18px] text-dark-900" />
-													),
-												},
-											]
-										: []),
-								];
-
-								if (dropdownItems.length === 0) {
-									return null;
-								}
-
-								return (
-									<div className="relative mr-1 inline-block overflow-visible">
-										<Dropdown items={dropdownItems}>
-											<HiEllipsisHorizontal className="h-5 w-5 text-dark-900" />
-										</Dropdown>
-									</div>
-								);
-							})()}
+							<div className="relative mr-1 inline-block overflow-visible">
+								<ListDropdown
+									canEditList={canEdit}
+									canDeleteList={!!(canDeleteList || isCreator)}
+									onEditBorderColor={() => {
+										setSelectedPublicListId(list.publicId);
+										openModal('LIST_BORDER_COLOR');
+									}}
+									onDeleteList={handleOpenDeleteListConfirmation}
+								/>
+							</div>
 						</div>
 					</div>
-					<div className="min-h-0 flex-1 overflow-hidden">
+					<div className="overflow-hidden">
 						{children}
 					</div>
 					{canDrag && (

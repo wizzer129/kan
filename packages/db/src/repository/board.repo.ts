@@ -257,6 +257,7 @@ export const getByPublicId = async (
 					publicId: true,
 					name: true,
 					borderColor: true,
+					createdBy: true,
 					boardId: true,
 					index: true,
 				},

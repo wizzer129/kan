@@ -71,6 +71,7 @@ export const boardDetailSchema = z.object({
 			publicId: z.string(),
 			name: z.string(),
 			borderColor: z.string().nullable(),
+			createdBy: z.string().nullable(),
 			index: z.number(),
 			cards: z.array(boardDetailCardSchema),
 		}),
