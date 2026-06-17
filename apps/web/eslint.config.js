@@ -5,18 +5,12 @@ import reactConfig from '@kan/eslint-config/react';
 /** @type {import('typescript-eslint').Config} */
 export default [
 	{
-		ignores: ['.next/**'],
+		ignores: ['.next/**', 'src/locales/**'],
 	},
 	...baseConfig,
 	...reactConfig,
 	...nextjsConfig,
 	...restrictEnvAccess,
-	{
-		files: ['src/locales/**/*.ts'],
-		rules: {
-			'eslint-comments/no-unused-disable': 'off',
-		},
-	},
 	{
 		files: ['src/**/*.{tsx,ts}'],
 		rules: {
