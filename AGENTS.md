@@ -25,9 +25,11 @@ Kan is an open-source project management tool (Trello alternative) built with:
 ## Project Structure
 
 - `apps/web/` - Next.js web application
+- `apps/docs/` - API documentation (Mintlify)
 - `packages/api/` - tRPC API routers
 - `packages/db/` - Database schema, migrations, and repositories
 - `packages/auth/` - Authentication package
+- `packages/logger/` - Shared logger package (`@kan/logger`)
 - `packages/shared/` - Shared utilities
 - `packages/email/` - Email templates and sending
 - `packages/stripe/` - Stripe integration
@@ -76,8 +78,8 @@ Kan is an open-source project management tool (Trello alternative) built with:
 - **i18n**: Use `t` template literal for translations (Lingui)
 - **Styling**: Use Tailwind CSS classes
 - **State Management**: Use tRPC React Query hooks for server state
-- **Modals**: Use `useModal` hook for modal management
-- **Popups**: Use `usePopup` hook for toast notifications
+- **Modals**: Use `useModal` hook from `~/providers/modal` for modal management
+- **Popups**: Use `usePopup` hook from `~/providers/popup` for toast notifications
 
 ## Key Concepts
 
@@ -102,6 +104,31 @@ Kan is an open-source project management tool (Trello alternative) built with:
 - Boards belong to Workspaces
 - Workspace members have different permission levels
 - Boards can be public or private
+
+### Webhooks
+
+- Workspaces can configure webhooks to receive event notifications
+- Webhook schema in `packages/db/src/schema/webhooks.ts`
+
+### Integrations
+
+- Workspaces can connect third-party integrations
+- Integration schema in `packages/db/src/schema/integrations.ts`
+
+### Imports
+
+- Cards/boards can be imported from external sources
+- Import schema in `packages/db/src/schema/imports.ts`
+
+### Notifications
+
+- Users receive in-app notifications for relevant card/workspace activity
+- Notification schema in `packages/db/src/schema/notifications.ts`
+
+### Subscriptions
+
+- Workspace billing is managed via Stripe subscriptions
+- Subscription schema in `packages/db/src/schema/subscriptions.ts`
 
 ### Soft Deletion Pattern
 
@@ -128,6 +155,7 @@ Kan is an open-source project management tool (Trello alternative) built with:
 - Views: `apps/web/src/views/`
 - Pages: `apps/web/src/pages/`
 - Hooks: `apps/web/src/hooks/`
+- Providers: `apps/web/src/providers/`
 - Utils: `apps/web/src/utils/`
 - Locales: `apps/web/src/locales/`
 
