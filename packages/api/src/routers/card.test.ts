@@ -2,9 +2,9 @@ import { TRPCError } from '@trpc/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as cardRepo from '@kan/db/repository/card.repo';
-import * as labelRepo from '@kan/db/repository/label.repo';
+import * as _labelRepo from '@kan/db/repository/label.repo';
 import * as listRepo from '@kan/db/repository/list.repo';
-import * as workspaceRepo from '@kan/db/repository/workspace.repo';
+import * as _workspaceRepo from '@kan/db/repository/workspace.repo';
 
 import { assertPermission } from '../utils/permissions';
 

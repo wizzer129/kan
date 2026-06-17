@@ -102,16 +102,14 @@ export default function VerticalBoardListView({
 			!!fallbackDestination;
 
 		const resolvedResult =
-			result.type === 'CARD' &&
-			!result.destination &&
-			fallbackDestination
+			result.type === 'CARD' && !result.destination && fallbackDestination
 				? {
-					...result,
-					destination: {
-						droppableId: fallbackDestination.droppableId,
-						index: fallbackDestination.index,
-					},
-				}
+						...result,
+						destination: {
+							droppableId: fallbackDestination.droppableId,
+							index: fallbackDestination.index,
+						},
+					}
 				: result;
 
 		setIsCardDragActive(false);
@@ -149,7 +147,8 @@ export default function VerticalBoardListView({
 								!!list.createdBy &&
 								session?.user.id === list.createdBy;
 							const canEditListActions = canEditList || isCreator;
-							const canDeleteListActions = canDeleteList || isCreator;
+							const canDeleteListActions =
+								canDeleteList || isCreator;
 
 							return (
 								<VerticalBoardAccordion
@@ -165,7 +164,9 @@ export default function VerticalBoardListView({
 										onOpenListBorderColor(list.publicId)
 									}
 									onDeleteList={() =>
-										onOpenDeleteListConfirmation(list.publicId)
+										onOpenDeleteListConfirmation(
+											list.publicId,
+										)
 									}
 									canCreateCard={canCreateCard}
 									canEditListActions={canEditListActions}
@@ -177,12 +178,16 @@ export default function VerticalBoardListView({
 									}
 									onCardDragPointerEnter={() => {
 										if (!isCardDragActive) return;
-										setHoveredAccordionListId(list.publicId);
+										setHoveredAccordionListId(
+											list.publicId,
+										);
 									}}
 									onCardDragPointerLeave={() => {
 										if (!isCardDragActive) return;
 										setHoveredAccordionListId((current) =>
-											current === list.publicId ? null : current,
+											current === list.publicId
+												? null
+												: current,
 										);
 									}}
 								/>

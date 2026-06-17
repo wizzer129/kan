@@ -186,7 +186,11 @@ export default function BoardKanbanView({
 																ref={
 																	providedCard.innerRef
 																}
-																style={providedCard.draggableProps.style}
+																style={
+																	providedCard
+																		.draggableProps
+																		.style
+																}
 																{...providedCard.draggableProps}
 																{...providedCard.dragHandleProps}
 															>

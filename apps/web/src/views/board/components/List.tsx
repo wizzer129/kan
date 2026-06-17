@@ -2,10 +2,7 @@ import type { ReactNode } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import { t } from '@lingui/core/macro';
 import { useForm } from 'react-hook-form';
-import {
-	HiMiniArrowsRightLeft,
-	HiOutlinePlusSmall,
-} from 'react-icons/hi2';
+import { HiMiniArrowsRightLeft, HiOutlinePlusSmall } from 'react-icons/hi2';
 
 import { authClient } from '@kan/auth/client';
 
@@ -138,19 +135,21 @@ export default function List({
 							<div className="relative mr-1 inline-block overflow-visible">
 								<ListDropdown
 									canEditList={canEdit}
-									canDeleteList={!!(canDeleteList || isCreator)}
+									canDeleteList={
+										!!(canDeleteList || isCreator)
+									}
 									onEditBorderColor={() => {
 										setSelectedPublicListId(list.publicId);
 										openModal('LIST_BORDER_COLOR');
 									}}
-									onDeleteList={handleOpenDeleteListConfirmation}
+									onDeleteList={
+										handleOpenDeleteListConfirmation
+									}
 								/>
 							</div>
 						</div>
 					</div>
-					<div className="overflow-hidden">
-						{children}
-					</div>
+					<div className="overflow-hidden">{children}</div>
 					{canDrag && (
 						<Tooltip content={t`Drag to move list`}>
 							<div className="absolute bottom-1 right-1 z-20 rounded p-1 text-light-700 transition-colors hover:bg-light-300 hover:text-light-900 dark:text-dark-700 dark:hover:bg-dark-200 dark:hover:text-dark-900">
